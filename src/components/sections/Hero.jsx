@@ -19,18 +19,6 @@ const itemVariants = {
   },
 }
 
-const floatingMockupVariants = {
-  initial: { y: 0 },
-  animate: {
-    y: [-10, 10, -10],
-    transition: {
-      duration: 6,
-      repeat: Infinity,
-      ease: 'easeInOut',
-    },
-  },
-}
-
 export function Hero({ onPrimary }) {
   return (
     <section className="hero">
@@ -67,48 +55,6 @@ export function Hero({ onPrimary }) {
             <Link to="/services" className="btn btn-ghost btn-lg">
               See What We Do
             </Link>
-          </motion.div>
-        </motion.div>
-        
-        <motion.div
-          className="hero-visual"
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ duration: 0.8, delay: 0.2, type: 'spring' }}
-        >
-          <div className="glow-ring" aria-hidden="true" />
-          <motion.div
-            className="mockup-card"
-            aria-hidden="true"
-            variants={floatingMockupVariants}
-            initial="initial"
-            animate="animate"
-            style={{ 
-              background: 'rgba(18, 18, 26, 0.4)', 
-              backdropFilter: 'blur(24px)', 
-              WebkitBackdropFilter: 'blur(24px)', 
-              border: '1px solid rgba(255,255,255,0.1)',
-              boxShadow: '0 30px 60px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)'
-            }}
-          >
-            <div className="mockup-header">
-              <div className="mockup-dot red" />
-              <div className="mockup-dot yellow" />
-              <div className="mockup-dot green" />
-              <span className="mockup-title">New Request</span>
-            </div>
-            <div className="mockup-form">
-              <input className="mockup-input" placeholder="Your name" readOnly style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }} />
-              <input className="mockup-input" placeholder="Email address" readOnly style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }} />
-              <textarea className="mockup-textarea" placeholder="Describe what you need…" readOnly style={{ background: 'rgba(0,0,0,0.3)', border: '1px solid rgba(255,255,255,0.05)' }} />
-              <button className="mockup-submit" type="button" tabIndex={-1}>
-                Submit Request
-              </button>
-            </div>
-            <div className="mockup-status">
-              <span className="status-dot" />
-              Team is working on it…
-            </div>
           </motion.div>
         </motion.div>
       </div>
