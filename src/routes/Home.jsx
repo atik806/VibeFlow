@@ -1,9 +1,9 @@
 import { useOutletContext } from 'react-router-dom'
 import { Hero } from '../components/sections/Hero'
-import { TrustBar } from '../components/sections/TrustBar'
 import { Stats } from '../components/sections/Stats'
 import { HowItWorks } from '../components/sections/HowItWorks'
 import { Services } from '../components/sections/Services'
+import { ProjectEstimator } from '../components/sections/ProjectEstimator'
 import { ImageGeneratorSection } from '../components/sections/ImageGenerator'
 import { WhyUs } from '../components/sections/WhyUs'
 import { Testimonials } from '../components/sections/Testimonials'
@@ -22,12 +22,12 @@ export default function Home() {
   return (
     <>
       <Hero onPrimary={openRequestModal} />
-      <TrustBar />
       <HowItWorks />
       <Services />
-      <ImageGeneratorSection />
-      <Stats />
+      <ProjectEstimator onRequestQuote={openRequestModal} />
       <WhyUs />
+      <Stats />
+      <ImageGeneratorSection />
       <Testimonials />
       <FAQ compact />
       <CTA onClick={openRequestModal} />

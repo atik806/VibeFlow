@@ -8,7 +8,7 @@ export default function FAQPage() {
   useSEO({
     title: 'FAQ',
     description:
-      'Answers to the most common questions about Vibe Flow timelines, pricing, revisions, IP, and more.',
+      'Answers to the most common questions about Vibe Flow timelines, quotes, revisions, IP, and more.',
   })
 
   return (

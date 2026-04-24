@@ -191,37 +191,6 @@
   .mockup-card { max-width: 340px; }
 }
 
-/* ==================== TRUST BAR ==================== */
-.trust-bar {
-  padding: 40px 0;
-  border-top: 1px solid var(--border-subtle);
-  border-bottom: 1px solid var(--border-subtle);
-  background: var(--bg-secondary);
-}
-.trust-bar-label {
-  text-align: center;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 2px;
-  color: var(--text-muted);
-  margin-bottom: 20px;
-}
-.trust-bar-logos {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 56px;
-  flex-wrap: wrap;
-  opacity: 0.7;
-}
-.trust-bar-logo {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-secondary);
-  letter-spacing: -0.5px;
-}
-
 /* ==================== HOW IT WORKS ==================== */
 .how-it-works {
   padding: 120px 0;
@@ -636,93 +605,232 @@
   }
 }
 
-/* ==================== PRICING ==================== */
-.pricing { padding: 120px 0; background: var(--bg-secondary); }
+/* ==================== PROJECT ESTIMATOR ==================== */
+.estimator {
+  padding: 120px 0;
+  background: var(--bg-secondary);
+  position: relative;
+}
 
-.pricing-grid {
+.estimator-card {
+  position: relative;
+  margin-top: 48px;
+  border-radius: var(--radius-xl);
+  padding: 44px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+.estimator-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(600px circle at 10% 0%, var(--accent-purple-glow), transparent 60%),
+    radial-gradient(500px circle at 100% 100%, var(--accent-cyan-glow), transparent 60%);
+  opacity: 0.5;
+  pointer-events: none;
+}
+
+.estimator-grid {
+  position: relative;
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 20px;
+  grid-template-columns: 1.1fr 0.9fr;
+  gap: 48px;
   align-items: stretch;
 }
 
-.pricing-card {
-  background: var(--bg-card);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-xl);
-  padding: 36px 28px;
+.estimator-controls {
   display: flex;
   flex-direction: column;
-  transition: var(--transition-normal);
-  position: relative;
-}
-.pricing-card:hover { border-color: var(--border-glow); transform: translateY(-4px); }
-
-.pricing-card.featured {
-  background: linear-gradient(180deg, rgba(124, 58, 237, 0.12), var(--bg-card));
-  border-color: var(--accent-purple);
-  box-shadow: var(--shadow-glow);
+  gap: 28px;
 }
 
-.pricing-tag {
-  position: absolute;
-  top: -12px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--gradient-primary);
-  color: #fff;
-  padding: 5px 14px;
-  border-radius: var(--radius-full);
+.estimator-group-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 1px;
+  letter-spacing: 1.6px;
+  margin-bottom: 12px;
 }
 
-.pricing-name {
+.estimator-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.estimator-option {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  background: var(--bg-glass);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  color: var(--text-secondary);
   font-size: 14px;
   font-weight: 600;
-  color: var(--text-secondary);
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  margin-bottom: 8px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  text-align: left;
 }
-.pricing-price {
-  font-size: 44px;
-  font-weight: 800;
-  letter-spacing: -1px;
-  line-height: 1;
-  margin-bottom: 4px;
+.estimator-option:hover {
+  border-color: var(--text-muted);
+  color: var(--text-primary);
+  transform: translateY(-1px);
 }
-.pricing-price span { font-size: 16px; color: var(--text-muted); font-weight: 500; }
-.pricing-desc {
-  color: var(--text-secondary);
+.estimator-option:focus-visible {
+  outline: 2px solid var(--accent-purple);
+  outline-offset: 2px;
+}
+.estimator-option.is-active {
+  background: linear-gradient(135deg, rgba(124, 58, 237, 0.18), rgba(6, 182, 212, 0.12));
+  border-color: var(--accent-purple);
+  color: #fff;
+  box-shadow: 0 6px 24px var(--accent-purple-glow);
+}
+.estimator-option.is-active svg {
+  color: #fff;
+}
+
+.estimator-option-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  line-height: 1.2;
+}
+.estimator-option-stack strong {
   font-size: 14px;
-  margin-bottom: 24px;
+  font-weight: 700;
 }
-.pricing-features {
+.estimator-option-stack span {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+.estimator-option.is-active .estimator-option-stack span {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.estimator-quote {
+  position: relative;
+  padding: 32px;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.04), rgba(255, 255, 255, 0.02));
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.estimator-quote-label {
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.6px;
+  color: var(--text-muted);
+}
+
+.estimator-quote-price {
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+}
+.estimator-price-range {
+  display: inline-flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  font-size: clamp(32px, 4vw, 44px);
+  font-weight: 800;
+  letter-spacing: -1.2px;
+  line-height: 1;
+  background: var(--gradient-primary);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+.estimator-price-range em {
+  font-style: normal;
+  color: var(--text-muted);
+  -webkit-text-fill-color: var(--text-muted);
+  font-size: 0.8em;
+  font-weight: 500;
+}
+
+.estimator-summary {
   list-style: none;
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-bottom: 28px;
-  flex: 1;
+  gap: 8px;
+  padding: 16px 0;
+  border-top: 1px solid var(--border-subtle);
+  border-bottom: 1px solid var(--border-subtle);
 }
-.pricing-features li {
+.estimator-summary li {
   display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  font-size: 14px;
-  color: var(--text-secondary);
+  justify-content: space-between;
+  align-items: center;
+  font-size: 13px;
 }
-.pricing-features li svg {
-  flex-shrink: 0;
+.estimator-summary li span {
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  font-size: 11px;
+  font-weight: 600;
+}
+.estimator-summary li strong {
+  color: var(--text-primary);
+  font-weight: 600;
+}
+
+.estimator-disclaimer {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 12px 14px;
+  background: var(--bg-glass);
+  border-radius: var(--radius-md);
+  font-size: 12px;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.estimator-disclaimer svg {
   color: var(--accent-cyan);
+  flex-shrink: 0;
   margin-top: 2px;
+}
+.estimator-disclaimer p { margin: 0; }
+
+.estimator-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: auto;
+}
+
+.estimator-call-link {
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
 }
 
 @media (max-width: 900px) {
-  .pricing-grid { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
+  .estimator-card { padding: 28px; }
+  .estimator-grid { grid-template-columns: 1fr; gap: 36px; }
+}
+@media (max-width: 560px) {
+  .estimator { padding: 80px 0; }
+  .estimator-option { flex: 1; min-width: calc(50% - 5px); justify-content: center; }
 }
 
 /* ==================== FAQ ==================== */

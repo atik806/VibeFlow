@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { motion } from 'framer-motion'
 import { SectionHeader } from '../ui/SectionHeader'
 import { Button } from '../ui/Button'
 import { Spinner } from '../ui/Spinner'
@@ -73,14 +74,27 @@ export function ImageGeneratorSection() {
   return (
     <section className="image-generation-section" id="image-generation">
       <div className="container">
-        <SectionHeader
-          label="Free Tool"
-          title="AI Image Generator"
-          subtitle="Generate stunning images instantly with AI. It's completely free — no signup required."
-          center
-        />
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-100px' }}
+          transition={{ duration: 0.6 }}
+        >
+          <SectionHeader
+            label="Free Tool"
+            title="AI Image Generator"
+            subtitle="Generate stunning images instantly with AI. It's completely free — no signup required."
+            center
+          />
+        </motion.div>
 
-        <div className="image-generator">
+        <motion.div 
+          className="image-generator"
+          initial={{ opacity: 0, scale: 0.95 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.6, delay: 0.2 }}
+        >
           <div className="prompt-presets" role="group" aria-label="Example prompts">
             {promptPresets.slice(0, 6).map((p) => (
               <button
@@ -182,7 +196,7 @@ export function ImageGeneratorSection() {
               </div>
             </div>
           )}
-        </div>
+        </motion.div>
       </div>
     </section>
   )
