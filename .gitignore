@@ -23,6 +23,12 @@ dist-ssr
 *.ntvs*
 *.njsproj
 *.sln
+
+
+
+
+
 *.sw?
 nul
 .env
+.env.local

@@ -4,6 +4,7 @@ import { SectionHeader } from '../ui/SectionHeader'
 import { Button } from '../ui/Button'
 import { Spinner } from '../ui/Spinner'
 import { generateImage, ImageGenerationError } from '../../lib/api/generateImage'
+import { saveRequest } from '../../lib/api/supabase'
 import { promptPresets } from '../../data/promptPresets'
 import { Wand2, ImageIcon, Download, RefreshCcw, Trash2 } from '../../icons'
 import { useToast } from '../../context/useToast'
@@ -48,11 +49,20 @@ export function ImageGeneratorSection() {
 
     setLoading(true)
     try {
+      // Save to database first
+      const requestId = await saveRequest(trimmed)
+      console.log('Request saved with ID:', requestId)
+      
+      if (!requestId) {
+        console.warn('Database save failed, continuing with generation only')
+      }
+      
       const url = await generateImage(trimmed, { signal: controller.signal })
-      setImage({ url, prompt: trimmed, at: Date.now() })
-      setHistory((prev) => [{ url, prompt: trimmed, at: Date.now() }, ...prev].slice(0, HISTORY_LIMIT))
+      setImage({ url, prompt: trimmed, at: Date.now(), requestId })
+      setHistory((prev) => [{ url, prompt: trimmed, at: Date.now(), requestId: requestId || Date.now() }, ...prev].slice(0, HISTORY_LIMIT))
     } catch (err) {
       if (err?.name === 'AbortError') return
+      console.error('Generation error:', err)
       if (err instanceof ImageGenerationError) {
         toast.error('Generation failed', err.message)
       } else {
