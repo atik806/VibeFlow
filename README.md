@@ -64,6 +64,7 @@ VibeFlow/
 │   ├── data/                        # Services, pricing, FAQ, testimonials
 │   ├── lib/
 │   │   ├── api/generateImage.js     # Browser-side fetch wrapper
+│   │   ├── supabaseClient.js        # Optional Supabase browser client
 │   │   ├── validation/              # zod schemas
 │   │   └── env.js                   # Validates VITE_* env
 │   └── styles/
@@ -147,6 +148,13 @@ Copy `.env.example` to `.env` and fill in the values you need.
 | `VITE_APP_URL`       | Canonical site URL | _(optional)_         |
 | `VITE_CONTACT_EMAIL` | Contact address    | `hello@vibeflow.app` |
 | `VITE_BRAND`         | Brand name         | `Vibe Flow`          |
+| `VITE_SUPABASE_URL`  | Supabase project URL (Settings → API) | _(optional)_ |
+| `VITE_SUPABASE_ANON_KEY` | Supabase anon / public key for `createClient()` | _(optional)_ |
+| `VITE_SUPABASE_PUBLISHABLE_KEY` | Same as anon key if your dashboard labels it “publishable” | _(optional)_ |
+
+Use **either** `VITE_SUPABASE_ANON_KEY` **or** `VITE_SUPABASE_PUBLISHABLE_KEY`, not both required. Never add the **service_role** key to `VITE_*` variables.
+
+Optional **server-side** duplicates (`SUPABASE_URL`, `SUPABASE_ANON_KEY`) are documented in `.env.example` for future API routes or scripts; they are not read by the current Vite client bundle.
 
 ---
 
