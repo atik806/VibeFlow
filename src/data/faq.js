@@ -5,7 +5,7 @@ export const faq = [
   },
   {
     q: 'How does pricing work?',
-    a: 'You pick a budget range when you submit a request. We confirm the exact scope and price before any work begins — if we can\'t deliver within your range, we say so upfront so you can adjust or walk away.',
+    a: 'Every project is quoted individually. Use our Project Estimator on the homepage for a fast ballpark range, then book a 15-minute discovery call — we finalise scope and send a fixed quote before any work begins. No surprise invoices, no hidden fees.',
   },
   {
     q: 'What if I don\'t like the result?',

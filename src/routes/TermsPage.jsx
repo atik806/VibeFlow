@@ -31,9 +31,9 @@ export default function TermsPage() {
         </Section>
 
         <Section title="Revisions and refunds">
-          Each plan includes the revisions described on the pricing page.
-          If a final deliverable does not match the agreed scope we will
-          either revise it or refund the engagement.
+          Each engagement includes the revisions agreed in the signed
+          scope. If a final deliverable does not match the agreed scope
+          we will either revise it or refund the engagement.
         </Section>
 
         <Section title="Confidentiality">

@@ -2,7 +2,7 @@ export const primaryNav = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
   { href: '/ai-generator', label: 'AI Generator' },
-  { href: '/pricing', label: 'Pricing' },
+  { href: '/#estimator', label: 'Estimator' },
   { href: '/faq', label: 'FAQ' },
   { href: '/about', label: 'About' },
   { href: '/contact', label: 'Contact' },
@@ -19,7 +19,7 @@ export const footerNav = {
   company: [
     { href: '/about', label: 'About Us' },
     { href: '/#how-it-works', label: 'How It Works' },
-    { href: '/pricing', label: 'Pricing' },
+    { href: '/#estimator', label: 'Project Estimator' },
     { href: '/contact', label: 'Contact' },
   ],
   legal: [
