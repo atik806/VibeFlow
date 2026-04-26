@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { SectionHeader } from '../ui/SectionHeader'
 import { Button } from '../ui/Button'
 import { Spinner } from '../ui/Spinner'
@@ -24,6 +24,7 @@ function loadHistory() {
 }
 
 export function ImageGeneratorSection() {
+  const shouldReduceMotion = useReducedMotion()
   const [prompt, setPrompt] = useState('')
   const [image, setImage] = useState(null)
   const [loading, setLoading] = useState(false)
@@ -51,18 +52,16 @@ export function ImageGeneratorSection() {
     try {
       // Save to database first
       const requestId = await saveRequest(trimmed)
-      console.log('Request saved with ID:', requestId)
-      
+
       if (!requestId) {
-        console.warn('Database save failed, continuing with generation only')
+        // Request persistence is optional; generation still proceeds.
       }
-      
+
       const url = await generateImage(trimmed, { signal: controller.signal })
       setImage({ url, prompt: trimmed, at: Date.now(), requestId })
       setHistory((prev) => [{ url, prompt: trimmed, at: Date.now(), requestId: requestId || Date.now() }, ...prev].slice(0, HISTORY_LIMIT))
     } catch (err) {
       if (err?.name === 'AbortError') return
-      console.error('Generation error:', err)
       if (err instanceof ImageGenerationError) {
         toast.error('Generation failed', err.message)
       } else {
@@ -85,10 +84,10 @@ export function ImageGeneratorSection() {
     <section className="image-generation-section" id="image-generation">
       <div className="container">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, y: 20 }}
+          whileInView={shouldReduceMotion ? undefined : { opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-100px' }}
-          transition={{ duration: 0.6 }}
+          transition={shouldReduceMotion ? undefined : { duration: 0.6 }}
         >
           <SectionHeader
             label="Free Tool"
@@ -100,10 +99,10 @@ export function ImageGeneratorSection() {
 
         <motion.div 
           className="image-generator"
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
+          initial={shouldReduceMotion ? false : { opacity: 0, scale: 0.95 }}
+          whileInView={shouldReduceMotion ? undefined : { opacity: 1, scale: 1 }}
           viewport={{ once: true, margin: '-50px' }}
-          transition={{ duration: 0.6, delay: 0.2 }}
+          transition={shouldReduceMotion ? undefined : { duration: 0.6, delay: 0.2 }}
         >
           <div className="prompt-presets" role="group" aria-label="Example prompts">
             {promptPresets.slice(0, 6).map((p) => (

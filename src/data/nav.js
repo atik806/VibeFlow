@@ -2,6 +2,7 @@ export const primaryNav = [
   { href: '/', label: 'Home' },
   { href: '/services', label: 'Services' },
   { href: '/ai-generator', label: 'AI Generator' },
+  { href: '/play-with-ai', label: 'Play with AI' },
   { href: '/#estimator', label: 'Estimator' },
   { href: '/faq', label: 'FAQ' },
   { href: '/about', label: 'About' },

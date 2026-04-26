@@ -16,9 +16,9 @@ export function Navbar({ onOpenRequestModal }) {
     <>
       <nav className={`navbar ${scrolled ? 'scrolled' : ''}`} aria-label="Primary">
         <div className="navbar-content">
-          <Link to="/" className="logo" aria-label="Vibe Flow home">
+          <Link to="/" className="logo" aria-label="VibeFlow home">
             <div className="logo-icon"><LightningIcon size={18} /></div>
-            <span>Vibe Flow</span>
+            <span>VibeFlow</span>
           </Link>
           <div className="nav-links">
             {primaryNav.slice(1).map((item) => (

@@ -11,13 +11,13 @@ export function Footer() {
           <div className="footer-brand">
             <Link to="/" className="logo">
               <div className="logo-icon"><LightningIcon size={18} /></div>
-              <span>Vibe Flow</span>
+              <span>VibeFlow</span>
             </Link>
             <p>Your request. Our expertise. Perfect flow.</p>
             <div className="footer-social">
               <a
                 href="https://twitter.com/"
-                aria-label="Vibe Flow on X (Twitter)"
+                aria-label="VibeFlow on X (Twitter)"
                 className="social-link"
                 rel="noreferrer"
                 target="_blank"
@@ -26,7 +26,7 @@ export function Footer() {
               </a>
               <a
                 href="https://github.com/"
-                aria-label="Vibe Flow on GitHub"
+                aria-label="VibeFlow on GitHub"
                 className="social-link"
                 rel="noreferrer"
                 target="_blank"
@@ -35,7 +35,7 @@ export function Footer() {
               </a>
               <a
                 href="https://linkedin.com/"
-                aria-label="Vibe Flow on LinkedIn"
+                aria-label="VibeFlow on LinkedIn"
                 className="social-link"
                 rel="noreferrer"
                 target="_blank"
@@ -50,7 +50,7 @@ export function Footer() {
           <FooterColumn title="Legal" items={footerNav.legal} />
         </div>
         <div className="footer-bottom">
-          <p>© {year} Vibe Flow. All rights reserved.</p>
+          <p>© {year} VibeFlow. All rights reserved.</p>
           <div className="footer-bottom-links">
             <Link to="/privacy">Privacy</Link>
             <Link to="/terms">Terms</Link>

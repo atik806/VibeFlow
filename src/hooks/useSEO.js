@@ -1,7 +1,8 @@
 import { useEffect } from 'react'
+import { env } from '../lib/env'
 
 const DEFAULTS = {
-  title: 'Vibe Flow — Premium On-Demand Service',
+  title: `${env.VITE_BRAND} — Premium On-Demand Service`,
   description:
     "Submit your request. Our expert team handles design, development, writing, AI and more. No hiring hassle, just results.",
   image: '/og-image.png',
@@ -20,7 +21,7 @@ function upsertMeta(selector, attrs) {
 // Lightweight SEO hook — updates document.title and meta tags on mount.
 export function useSEO({ title, description, image, noIndex } = {}) {
   useEffect(() => {
-    const resolvedTitle = title ? `${title} · Vibe Flow` : DEFAULTS.title
+    const resolvedTitle = title ? `${title} · ${env.VITE_BRAND}` : DEFAULTS.title
     const resolvedDesc = description || DEFAULTS.description
     const resolvedImage = image || DEFAULTS.image
 

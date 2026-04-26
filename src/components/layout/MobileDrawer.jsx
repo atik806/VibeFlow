@@ -33,7 +33,7 @@ export function MobileDrawer({ isOpen, onClose, onOpenRequestModal }) {
         <div className="drawer-header">
           <span className="logo">
             <div className="logo-icon"><LightningIcon size={18} /></div>
-            <span>Vibe Flow</span>
+            <span>VibeFlow</span>
           </span>
           <button
             className="modal-close"

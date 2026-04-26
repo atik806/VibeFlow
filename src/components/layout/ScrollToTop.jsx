@@ -7,11 +7,22 @@ export function ScrollToTop() {
 
   useEffect(() => {
     if (hash) {
-      const el = document.getElementById(hash.slice(1))
-      if (el) {
+      const targetId = hash.slice(1)
+      const scrollToHashTarget = () => {
+        const el = document.getElementById(targetId)
+        if (!el) return false
         el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-        return
+        return true
       }
+
+      if (scrollToHashTarget()) return
+
+      const rafId = requestAnimationFrame(() => {
+        if (scrollToHashTarget()) return
+        setTimeout(scrollToHashTarget, 80)
+      })
+
+      return () => cancelAnimationFrame(rafId)
     }
     window.scrollTo({ top: 0, behavior: 'instant' })
   }, [pathname, hash])

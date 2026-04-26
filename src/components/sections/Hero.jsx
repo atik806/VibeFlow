@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, useReducedMotion } from 'framer-motion'
 import { Button } from '../ui/Button'
 
 const containerVariants = {
@@ -20,6 +20,8 @@ const itemVariants = {
 }
 
 export function Hero({ onPrimary }) {
+  const shouldReduceMotion = useReducedMotion()
+
   return (
     <section className="hero">
       <div className="hero-bg" aria-hidden="true">
@@ -31,13 +33,13 @@ export function Hero({ onPrimary }) {
         <motion.div
           className="hero-text"
           variants={containerVariants}
-          initial="hidden"
-          animate="show"
+          initial={shouldReduceMotion ? false : 'hidden'}
+          animate={shouldReduceMotion ? undefined : 'show'}
         >
           <motion.div variants={itemVariants} className="hero-badge-wrapper" style={{ marginBottom: 16 }}>
             <span className="badge badge-purple">
               <span className="badge-pulse" style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--accent-purple)', display: 'inline-block', marginRight: 6, animation: 'pulse 2s infinite' }} />
-              Vibe Flow v2.0 is Live
+              VibeFlow v2.0 is Live
             </span>
           </motion.div>
           <motion.h1 variants={itemVariants}>
@@ -45,7 +47,7 @@ export function Hero({ onPrimary }) {
             <span style={{ background: 'var(--gradient-primary)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>We'll Handle the Rest.</span>
           </motion.h1>
           <motion.p variants={itemVariants}>
-            Submit a request and the Vibe Flow expert team delivers. No browsing,
+            Submit a request and the VibeFlow expert team delivers. No browsing,
             no hiring, no headaches — just premium results delivered directly to you.
           </motion.p>
           <motion.div variants={itemVariants} className="hero-buttons">
