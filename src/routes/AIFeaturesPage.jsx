@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useSEO } from '../hooks/useSEO'
 import { SectionHeader } from '../components/ui/SectionHeader'
-import { Wand2, FileText, Eye, Gamepad2, Sparkles } from 'lucide-react'
+import { Wand2, FileText, Eye, Gamepad2 } from 'lucide-react'
 
 const aiFeatures = [
   {
@@ -19,14 +19,6 @@ const aiFeatures = [
     icon: FileText,
     href: '/cv-with-ai',
     color: 'purple',
-  },
-  {
-    id: 'play',
-    title: 'Play with AI',
-    description: 'Interactive AI features and custom image generation',
-    icon: Sparkles,
-    href: '/play-with-ai',
-    color: 'pink',
   },
   {
     id: 'detection',
