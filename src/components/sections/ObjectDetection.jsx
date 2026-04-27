@@ -31,6 +31,7 @@ export function ObjectDetection() {
   const detectionApiBase = env.VITE_OBJECT_DETECTION_API_URL.replace(/\/+$/, '')
   const apiEndpoint = (path) => `${detectionApiBase}${path}`
   const streamUrl = isRunning ? apiEndpoint('/video_feed') : ''
+  const stopPaths = ['/stop', '/camera/stop', '/release']
 
   const toUserMessage = (fallback) =>
     window.location.protocol === 'https:' && detectionApiBase.startsWith('http://')
@@ -82,8 +83,20 @@ export function ObjectDetection() {
     if (isStopping || !isRunning) return
     setIsStopping(true)
     try {
-      const res = await fetch(apiEndpoint('/stop'), { method: 'POST' })
-      if (!res.ok) throw new Error('Failed to stop detection service.')
+      const results = await Promise.allSettled(
+        stopPaths.map((path) =>
+          fetch(apiEndpoint(path), {
+            method: 'POST',
+            cache: 'no-store',
+          })
+        )
+      )
+
+      const hasSuccessfulStop = results.some(
+        (result) => result.status === 'fulfilled' && result.value.ok
+      )
+      if (!hasSuccessfulStop) throw new Error('Failed to stop detection service.')
+
       setIsRunning(false)
       setStats({
         fps: 0,
@@ -137,6 +150,27 @@ export function ObjectDetection() {
     if (!isRunning && videoRef.current) {
       // Force-close the MJPEG stream so backend can release camera hardware.
       videoRef.current.src = ''
+    }
+  }, [isRunning])
+
+  useEffect(() => {
+    const stopOnLeave = () => {
+      if (!isRunning) return
+      try {
+        navigator.sendBeacon(apiEndpoint('/stop'))
+      } catch {
+        // Ignore best-effort shutdown errors during unload.
+      }
+    }
+    const stopOnHidden = () => {
+      if (document.hidden) stopOnLeave()
+    }
+
+    window.addEventListener('beforeunload', stopOnLeave)
+    document.addEventListener('visibilitychange', stopOnHidden)
+    return () => {
+      window.removeEventListener('beforeunload', stopOnLeave)
+      document.removeEventListener('visibilitychange', stopOnHidden)
     }
   }, [isRunning])
 

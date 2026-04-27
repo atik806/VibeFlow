@@ -4,7 +4,7 @@ import { useDisclosure } from '../../hooks/useDisclosure'
 import { useMediaQuery } from '../../hooks/useMediaQuery'
 import { primaryNav } from '../../data/nav'
 import { LightningIcon } from '../../icons'
-import { Menu } from '../../icons'
+import { Menu } from 'lucide-react'
 import { MobileDrawer } from './MobileDrawer'
 
 export function Navbar({ onOpenRequestModal }) {

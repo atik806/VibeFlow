@@ -18,6 +18,16 @@ export {
   Loader2,
   RefreshCcw,
   Trash2,
+  Eye,
+  Gamepad2,
+  FileText,
+  ChevronRight,
+  ChevronDown,
+  Trophy,
+  RotateCcw,
+  Copy,
+  Upload,
+  X,
 } from 'lucide-react'
 
 export function StarIcon({ size = 18 }) {

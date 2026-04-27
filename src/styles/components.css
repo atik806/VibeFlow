@@ -394,6 +394,40 @@ textarea.field-control {
   color: var(--text-primary);
 }
 
+.drawer-submenu {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.drawer-submenu-label {
+  padding: 14px 16px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--text-muted);
+}
+
+.drawer-subitem {
+  padding: 12px 24px;
+  border-radius: var(--radius-md);
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: var(--transition-fast);
+}
+
+.drawer-subitem:hover {
+  background: var(--bg-glass);
+  color: var(--text-primary);
+}
+
+.drawer-subitem.active {
+  background: var(--bg-glass-strong);
+  color: var(--accent-cyan);
+}
+
 .drawer-footer {
   margin-top: auto;
   padding-top: 24px;

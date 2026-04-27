@@ -8,7 +8,11 @@ import { Spinner } from './components/ui/Spinner'
 const Home = lazy(() => import('./routes/Home'))
 const ServicesPage = lazy(() => import('./routes/ServicesPage'))
 const AIGeneratorPage = lazy(() => import('./routes/AIGeneratorPage'))
+const AIFeaturesPage = lazy(() => import('./routes/AIFeaturesPage'))
 const PlayWithAIPage = lazy(() => import('./routes/PlayWithAIPage'))
+const ObjectDetectionPage = lazy(() => import('./routes/ObjectDetectionPage'))
+const GamesPage = lazy(() => import('./routes/GamesPage'))
+const CVWithAIPage = lazy(() => import('./routes/CVWithAIPage'))
 const AboutPage = lazy(() => import('./routes/AboutPage'))
 const FAQPage = lazy(() => import('./routes/FAQPage'))
 const ContactPage = lazy(() => import('./routes/ContactPage'))
@@ -41,7 +45,11 @@ export default function App() {
                 <Route index element={<Home />} />
                 <Route path="services" element={<ServicesPage />} />
                 <Route path="ai-generator" element={<AIGeneratorPage />} />
+                <Route path="ai-features" element={<AIFeaturesPage />} />
                 <Route path="play-with-ai" element={<PlayWithAIPage />} />
+                <Route path="cv-with-ai" element={<CVWithAIPage />} />
+                <Route path="object-detection" element={<ObjectDetectionPage />} />
+                <Route path="games" element={<GamesPage />} />
                 <Route path="about" element={<AboutPage />} />
                 <Route path="faq" element={<FAQPage />} />
                 <Route path="contact" element={<ContactPage />} />
