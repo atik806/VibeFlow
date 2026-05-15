@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YOLOv8 Real-Time Object Detection</title>
+  <link rel="stylesheet" href="/static/styles.css" />
+</head>
+<body>
+  <main class="container">
+    <section class="panel">
+      <h1>YOLOv8 Real-Time Detection</h1>
+      <p class="subtitle">Live webcam feed with bounding boxes, labels, confidence, and stats.</p>
+
+      <div class="controls">
+        <button id="startBtn" class="btn primary">Start Detection</button>
+        <button id="stopBtn" class="btn danger" disabled>Stop Detection</button>
+        <label for="profileSelect" class="profile-label">Mode</label>
+        <select id="profileSelect" class="profile-select">
+          <option value="max_accuracy">Max Accuracy</option>
+          <option value="balanced">Balanced</option>
+          <option value="fast">Fast</option>
+        </select>
+      </div>
+
+      <div class="video-wrap">
+        <img id="videoFeed" src="/video_feed" alt="Live detection stream" />
+      </div>
+
+      <div class="stats">
+        <div class="stat-card">
+          <span class="label">Status</span>
+          <strong id="statusValue">Paused</strong>
+        </div>
+        <div class="stat-card">
+          <span class="label">FPS</span>
+          <strong id="fpsValue">0.00</strong>
+        </div>
+        <div class="stat-card">
+          <span class="label">Inference</span>
+          <strong id="infValue">0.00 ms</strong>
+        </div>
+        <div class="stat-card">
+          <span class="label">Objects</span>
+          <strong id="objValue">0</strong>
+        </div>
+      </div>
+
+      <h2>Detected Classes</h2>
+      <ul id="objectList" class="object-list"></ul>
+    </section>
+  </main>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
