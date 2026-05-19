@@ -1,6 +1,8 @@
 import { Suspense, lazy } from 'react'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/layout/Layout'
+import { AdminLayout } from './components/admin/AdminLayout'
+import { AdminGuard } from './components/admin/AdminGuard'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { ToastProvider } from './context/ToastContext'
 import { Spinner } from './components/ui/Spinner'
@@ -19,6 +21,12 @@ const ContactPage = lazy(() => import('./routes/ContactPage'))
 const PrivacyPage = lazy(() => import('./routes/PrivacyPage'))
 const TermsPage = lazy(() => import('./routes/TermsPage'))
 const NotFoundPage = lazy(() => import('./routes/NotFoundPage'))
+
+const AdminLogin = lazy(() => import('./routes/AdminLogin'))
+const AdminDashboard = lazy(() => import('./routes/AdminDashboard'))
+const AdminRequests = lazy(() => import('./routes/AdminRequests'))
+const AdminMessages = lazy(() => import('./routes/AdminMessages'))
+const AdminSettings = lazy(() => import('./routes/AdminSettings'))
 
 function PageFallback() {
   return (
@@ -56,6 +64,22 @@ export default function App() {
                 <Route path="privacy" element={<PrivacyPage />} />
                 <Route path="terms" element={<TermsPage />} />
                 <Route path="*" element={<NotFoundPage />} />
+              </Route>
+
+              <Route path="/admin/login" element={<AdminLogin />} />
+
+              <Route
+                path="/admin"
+                element={
+                  <AdminGuard>
+                    <AdminLayout />
+                  </AdminGuard>
+                }
+              >
+                <Route index element={<AdminDashboard />} />
+                <Route path="requests" element={<AdminRequests />} />
+                <Route path="messages" element={<AdminMessages />} />
+                <Route path="settings" element={<AdminSettings />} />
               </Route>
             </Routes>
           </Suspense>

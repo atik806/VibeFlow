@@ -1,6 +1,6 @@
 import { getSupabase, isSupabaseConfigured } from '../supabaseClient'
 
-export async function saveRequest(prompt) {
+export async function saveRequest(formData) {
   if (!isSupabaseConfigured()) {
     if (import.meta.env.DEV) {
       console.warn('[Supabase] saveRequest skipped: set VITE_SUPABASE_URL and a public key in .env')
@@ -10,10 +10,22 @@ export async function saveRequest(prompt) {
 
   const supabase = getSupabase()
 
+  const payload = {
+    prompt: JSON.stringify({
+      name: formData.name,
+      email: formData.email,
+      service: formData.service,
+      subcategory: formData.subcategory,
+      description: formData.description,
+      budget: formData.budget,
+    }),
+    status: 'pending',
+  }
+
   try {
     const { data, error } = await supabase
       .from('requests')
-      .insert([{ prompt, status: 'pending' }])
+      .insert([payload])
       .select()
       .single()
 

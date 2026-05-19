@@ -4,14 +4,14 @@ import { Button } from '../ui/Button'
 import { RequestForm } from '../forms/RequestForm'
 import { useToast } from '../../context/useToast'
 import { Check } from '../../icons'
+import { saveRequest } from '../../lib/api/supabase'
+import { isSupabaseConfigured } from '../../lib/supabaseClient'
 
-export function RequestModal({ isOpen, onClose }) {
+export function RequestModal({ isOpen, onClose, onSubmitted }) {
   const [submitted, setSubmitted] = useState(false)
   const [submittedName, setSubmittedName] = useState('')
   const toast = useToast()
 
-  // Reset on close (no setState-in-effect). This guarantees the form
-  // is fresh next time the modal is opened.
   const handleClose = useCallback(() => {
     setSubmitted(false)
     setSubmittedName('')
@@ -19,11 +19,17 @@ export function RequestModal({ isOpen, onClose }) {
   }, [onClose])
 
   const handleSubmit = async (values) => {
-    await new Promise((r) => setTimeout(r, 600))
-    console.log('[RequestForm] submission', values)
+    const saved = await saveRequest(values)
+
+    if (isSupabaseConfigured() && !saved) {
+      toast.error('Failed to save request', 'Please try again.')
+      return
+    }
+
     setSubmittedName(values.name)
     setSubmitted(true)
     toast.success('Request submitted', "We'll reach out within 24 hours.")
+    onSubmitted?.()
   }
 
   return (
