@@ -12,6 +12,15 @@ export class ErrorBoundary extends Component {
 
   componentDidCatch(error, info) {
     console.error('[ErrorBoundary]', error, info)
+    import('../../lib/api/monitoring').then(({ logError }) =>
+      logError({
+        level: 'error',
+        message: error.message || String(error),
+        stack: error.stack,
+        route: window.location.pathname,
+        metadata: { componentStack: info?.componentStack },
+      })
+    )
   }
 
   handleRetry = () => {

@@ -1,6 +1,20 @@
 // Client-side helper that hits our own `/api/generate-image` proxy.
 // The proxy (see api/generate-image.js + vite.config.js) keeps the
 // Hugging Face token on the server so it never ships to the browser.
+
+async function logError(message, error) {
+  try {
+    const { logError: log } = await import('./monitoring')
+    await log({
+      level: 'error',
+      message,
+      stack: error?.stack,
+      route: window.location.pathname,
+      metadata: { code: error?.code, status: error?.status },
+    })
+  } catch {}
+}
+
 export async function generateImage(prompt, { signal } = {}) {
   const trimmed = (prompt || '').trim()
   if (!trimmed) {
@@ -20,6 +34,7 @@ export async function generateImage(prompt, { signal } = {}) {
     })
   } catch (err) {
     if (err?.name === 'AbortError') throw err
+    logError('Image generation network error', err)
     throw new ImageGenerationError(
       'NETWORK',
       "Couldn't reach the image service. Check your connection and try again."
@@ -46,11 +61,13 @@ export async function generateImage(prompt, { signal } = {}) {
       code = 'MODEL_LOADING'
       message = 'The model is warming up. Please try again shortly.'
     }
+    logError(`Image generation API error ${response.status}: ${code}`, { code, status: response.status })
     throw new ImageGenerationError(code, message, response.status)
   }
 
   const blob = await response.blob()
   if (!blob || blob.size === 0) {
+    logError('Image generation empty response', null)
     throw new ImageGenerationError('EMPTY_IMAGE', 'Received an empty image.')
   }
   return URL.createObjectURL(blob)
