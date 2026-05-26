@@ -1,16 +1,28 @@
 import { useState, useEffect, useCallback } from 'react'
-import { FileText, CheckCircle2, Clock, Activity, RefreshCcw } from 'lucide-react'
+import { FileText, CheckCircle2, Clock, Activity, RefreshCcw, Users } from 'lucide-react'
 import { useOutletContext } from 'react-router-dom'
 import { useSEO } from '../hooks/useSEO'
 import { isSupabaseConfigured } from '../lib/supabaseClient'
+import { getAdminToken } from '../lib/adminAuth'
 import { getAllRequests } from '../lib/api/supabase'
 import { Spinner } from '../components/ui/Spinner'
 import { parseRequest } from '../lib/parseRequest'
+
+function fetchVisitors() {
+  const token = getAdminToken()
+  const headers = {}
+  if (token) headers['Authorization'] = `Bearer ${token}`
+  return fetch('/api/visitors', { headers }).then((r) => {
+    if (!r.ok) throw new Error(r.statusText)
+    return r.json()
+  })
+}
 
 export default function AdminDashboard() {
   useSEO({ title: 'Admin Dashboard', noIndex: true })
   const { refreshKey } = useOutletContext()
   const [requests, setRequests] = useState(null)
+  const [visitors, setVisitors] = useState(null)
 
   useEffect(() => {
     if (!isSupabaseConfigured()) return
@@ -20,6 +32,14 @@ export default function AdminDashboard() {
     })
     return () => { cancelled = true }
   }, [refreshKey])
+
+  useEffect(() => {
+    fetchVisitors().then((d) => setVisitors(d)).catch(() => {})
+    const interval = setInterval(() => {
+      fetchVisitors().then((d) => setVisitors(d)).catch(() => {})
+    }, 15_000)
+    return () => clearInterval(interval)
+  }, [])
 
   const handleRefresh = useCallback(() => {
     if (!isSupabaseConfigured()) return
@@ -56,6 +76,9 @@ export default function AdminDashboard() {
     )
   }
 
+  const online = visitors?.online ?? null
+  const recentPaths = (visitors?.sessions || []).slice(0, 5)
+
   const formRequests = requests.filter((r) => r._parsed)
   const total = formRequests.length
   const pending = formRequests.filter((r) => r.status === 'pending').length
@@ -63,6 +86,12 @@ export default function AdminDashboard() {
   const processing = formRequests.filter((r) => r.status === 'processing').length
 
   const stats = [
+    {
+      label: 'Online Now',
+      value: online !== null ? online : '…',
+      icon: Users,
+      color: 'cyan',
+    },
     {
       label: 'Total Requests',
       value: total,
@@ -119,6 +148,21 @@ export default function AdminDashboard() {
           </div>
         ))}
       </div>
+
+      {online !== null && online > 0 && (
+        <div className="admin-activity-card" style={{ marginBottom: 20, padding: 16 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+            <Users size={16} style={{ color: 'var(--success)' }} />
+            <span style={{ fontWeight: 600, fontSize: 14 }}>Active on site</span>
+          </div>
+          {recentPaths.map((s) => (
+            <div key={s.session_id} style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 13, padding: '2px 0' }}>
+              <span style={{ width: 6, height: 6, borderRadius: '50%', background: 'var(--success)', display: 'inline-block' }} />
+              <span style={{ color: 'var(--text-muted)' }}>{s.page_path}</span>
+            </div>
+          ))}
+        </div>
+      )}
 
       <div className="admin-table-container">
         <div className="admin-table-header">

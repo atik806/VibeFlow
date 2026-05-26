@@ -39,6 +39,22 @@ function apiDevMiddleware() {
           }
         }
       })
+
+      server.middlewares.use('/api/visitors', async (req, res, next) => {
+        try {
+          const { default: handler } = await server.ssrLoadModule('/api/visitors.js')
+          await handler(req, res)
+        } catch (err) {
+          console.error('[api/visitors] dev middleware error:', err)
+          if (!res.headersSent) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ code: 'DEV_HANDLER_ERROR', message: err.message }))
+          } else {
+            next(err)
+          }
+        }
+      })
     },
   }
 }

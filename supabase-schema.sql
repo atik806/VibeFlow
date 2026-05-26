@@ -64,3 +64,27 @@ ALTER TABLE requests ADD CONSTRAINT prompt_length
 
 ALTER TABLE error_logs ADD CONSTRAINT msg_length
   CHECK (char_length(message) <= 2000);
+
+-- Visitor tracking for admin online dashboard
+CREATE TABLE IF NOT EXISTS visitor_sessions (
+  id BIGSERIAL PRIMARY KEY,
+  session_id TEXT NOT NULL UNIQUE,
+  page_path TEXT NOT NULL DEFAULT '/',
+  user_agent TEXT,
+  referrer TEXT,
+  visited_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  last_active_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE visitor_sessions ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY "Visitors can insert their own session" ON visitor_sessions
+  FOR INSERT WITH CHECK (true);
+
+CREATE POLICY "Visitors can update their own session" ON visitor_sessions
+  FOR UPDATE USING (true);
+
+CREATE POLICY "Only service role can read" ON visitor_sessions
+  FOR SELECT USING (auth.role() = 'service_role');
+
+CREATE INDEX idx_visitors_active ON visitor_sessions (last_active_at);

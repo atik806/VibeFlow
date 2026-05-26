@@ -6,6 +6,7 @@ import { AdminGuard } from './components/admin/AdminGuard'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { ToastProvider } from './context/ToastContext'
 import { Spinner } from './components/ui/Spinner'
+import { VisitorTracker } from './components/VisitorTracker'
 
 const Home = lazy(() => import('./routes/Home'))
 const ServicesPage = lazy(() => import('./routes/ServicesPage'))
@@ -48,6 +49,7 @@ export default function App() {
       <ToastProvider>
         <BrowserRouter>
           <Suspense fallback={<PageFallback />}>
+            <VisitorTracker />
             <Routes>
               <Route element={<Layout />}>
                 <Route index element={<Home />} />
