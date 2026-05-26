@@ -10,17 +10,19 @@ export async function saveRequest(formData) {
 
   const supabase = getSupabase()
 
-  const payload = {
-    prompt: JSON.stringify({
-      name: formData.name,
-      email: formData.email,
-      service: formData.service,
-      subcategory: formData.subcategory,
-      description: formData.description,
-      budget: formData.budget,
-    }),
-    status: 'pending',
-  }
+  const payload = typeof formData === 'string'
+    ? { prompt: formData, status: 'pending' }
+    : {
+        prompt: JSON.stringify({
+          name: formData.name,
+          email: formData.email,
+          service: formData.service,
+          subcategory: formData.subcategory,
+          description: formData.description,
+          budget: formData.budget,
+        }),
+        status: 'pending',
+      }
 
   try {
     const { data, error } = await supabase
