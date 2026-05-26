@@ -28,3 +28,19 @@ CREATE TABLE IF NOT EXISTS error_logs (
 ALTER TABLE error_logs ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Allow admin full access on error_logs" ON error_logs
   FOR ALL USING (true);
+
+-- Project request submissions (via api/submit-request)
+CREATE TABLE IF NOT EXISTS project_requests (
+  id BIGSERIAL PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL,
+  service TEXT NOT NULL,
+  subcategory TEXT NOT NULL,
+  description TEXT NOT NULL,
+  budget TEXT NOT NULL,
+  status TEXT DEFAULT 'new',
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+ALTER TABLE project_requests ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow public insert" ON project_requests FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow authenticated read" ON project_requests FOR SELECT USING (auth.role() = 'authenticated');

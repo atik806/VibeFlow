@@ -1,32 +1,9 @@
 import { InferenceClient } from '@huggingface/inference'
+import { rateLimit } from '../lib/rate-limiter.js'
 
 const DEFAULT_MODEL = 'stabilityai/stable-diffusion-xl-base-1.0'
 const DEFAULT_PROVIDER = 'fal-ai'
 const MAX_PROMPT_LENGTH = 500
-
-// Naive in-memory rate limiter — good enough for a single serverless
-// instance / local dev. For production scale, swap for Upstash/Redis.
-const rateBucket = new Map()
-const WINDOW_MS = 60_000
-const MAX_PER_WINDOW = 10
-
-function rateLimit(key) {
-  const now = Date.now()
-  const entry = rateBucket.get(key) || { count: 0, resetAt: now + WINDOW_MS }
-  if (now > entry.resetAt) {
-    entry.count = 0
-    entry.resetAt = now + WINDOW_MS
-  }
-  entry.count += 1
-  rateBucket.set(key, entry)
-  return entry.count <= MAX_PER_WINDOW
-}
-
-function getIp(req) {
-  const xff = req.headers['x-forwarded-for']
-  if (typeof xff === 'string' && xff.length > 0) return xff.split(',')[0].trim()
-  return req.socket?.remoteAddress || 'unknown'
-}
 
 async function readJson(req) {
   if (req.body && typeof req.body === 'object') return req.body
@@ -51,7 +28,7 @@ function sendJson(res, status, body) {
   res.end(JSON.stringify(body))
 }
 
-export default async function handler(req, res) {
+const _handler = async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.statusCode = 204
     res.end()
@@ -88,14 +65,6 @@ export default async function handler(req, res) {
     })
   }
 
-  const ip = getIp(req)
-  if (!rateLimit(ip)) {
-    return sendJson(res, 429, {
-      code: 'RATE_LIMIT',
-      message: 'Too many requests. Please slow down.',
-    })
-  }
-
   try {
     const client = new InferenceClient(token)
     const blob = await client.textToImage({
@@ -124,3 +93,5 @@ export default async function handler(req, res) {
     })
   }
 }
+
+export default rateLimit({ max: 5, windowMs: 60_000, keyPrefix: 'rl:genimg' })(_handler)

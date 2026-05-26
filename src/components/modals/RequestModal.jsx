@@ -4,8 +4,7 @@ import { Button } from '../ui/Button'
 import { RequestForm } from '../forms/RequestForm'
 import { useToast } from '../../context/useToast'
 import { Check } from '../../icons'
-import { saveRequest } from '../../lib/api/supabase'
-import { isSupabaseConfigured } from '../../lib/supabaseClient'
+import { submitRequest } from '../../lib/api/submitRequest'
 
 export function RequestModal({ isOpen, onClose, onSubmitted }) {
   const [submitted, setSubmitted] = useState(false)
@@ -19,17 +18,15 @@ export function RequestModal({ isOpen, onClose, onSubmitted }) {
   }, [onClose])
 
   const handleSubmit = async (values) => {
-    const saved = await saveRequest(values)
-
-    if (isSupabaseConfigured() && !saved) {
-      toast.error('Failed to save request', 'Please try again.')
-      return
+    try {
+      await submitRequest(values)
+      setSubmittedName(values.name)
+      setSubmitted(true)
+      toast.success('Request submitted', "We'll reach out within 24 hours.")
+      onSubmitted?.()
+    } catch (err) {
+      toast.error('Failed to submit', err.message)
     }
-
-    setSubmittedName(values.name)
-    setSubmitted(true)
-    toast.success('Request submitted', "We'll reach out within 24 hours.")
-    onSubmitted?.()
   }
 
   return (

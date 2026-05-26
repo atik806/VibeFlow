@@ -8,6 +8,22 @@ function apiDevMiddleware() {
   return {
     name: 'api-dev-middleware',
     configureServer(server) {
+      server.middlewares.use('/api/submit-request', async (req, res, next) => {
+        try {
+          const { default: handler } = await server.ssrLoadModule('/api/submit-request.js')
+          await handler(req, res)
+        } catch (err) {
+          console.error('[api/submit-request] dev middleware error:', err)
+          if (!res.headersSent) {
+            res.statusCode = 500
+            res.setHeader('Content-Type', 'application/json')
+            res.end(JSON.stringify({ code: 'DEV_HANDLER_ERROR', message: err.message }))
+          } else {
+            next(err)
+          }
+        }
+      })
+
       server.middlewares.use('/api/generate-image', async (req, res, next) => {
         try {
           const { default: handler } = await server.ssrLoadModule('/api/generate-image.js')
