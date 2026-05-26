@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react'
 import { useLocation } from 'react-router-dom'
-import { getSupabase } from '../lib/supabaseClient'
+import { getSupabase, isSupabaseConfigured } from '../lib/supabaseClient'
 
 const HEARTBEAT_MS = 30_000
 
@@ -14,6 +14,7 @@ function getSessionId() {
 }
 
 async function sendHeartbeat(path) {
+  if (!isSupabaseConfigured()) return
   try {
     const supabase = getSupabase()
     await supabase.from('visitor_sessions').upsert(
@@ -27,7 +28,7 @@ async function sendHeartbeat(path) {
       { onConflict: 'session_id' }
     )
   } catch {
-    /* offline or not configured — silently ignore */
+    /* silently ignore */
   }
 }
 
@@ -37,6 +38,7 @@ export function useVisitorTracking() {
   const pathRef = useRef(location.pathname)
 
   useEffect(() => {
+    if (!isSupabaseConfigured()) return
     pathRef.current = location.pathname
     sendHeartbeat(location.pathname)
 
@@ -55,6 +57,7 @@ export function useVisitorTracking() {
   }, [location.pathname])
 
   useEffect(() => {
+    if (!isSupabaseConfigured()) return
     const send = () => sendHeartbeat(pathRef.current)
     window.addEventListener('beforeunload', send)
     return () => window.removeEventListener('beforeunload', send)
