@@ -1,14 +1,14 @@
 import { z } from 'zod'
 import { rateLimit } from '../lib/rate-limiter.js'
-
-const bodySchema = z.object({
-  name: z.string().min(2).max(80),
-  email: z.string().email(),
-  service: z.string().min(1),
-  subcategory: z.string().min(1),
-  description: z.string().min(20).max(2000),
-  budget: z.string().min(1),
-})
+import {
+  nameSchema,
+  emailSchema,
+  descriptionSchema,
+  serviceSchema,
+  budgetSchema,
+  getSubcategories,
+  sanitize,
+} from '../lib/validation.js'
 
 function sendJson(res, status, body) {
   res.statusCode = status
@@ -29,6 +29,24 @@ async function readJson(req) {
   })
 }
 
+const bodySchema = z.object({
+  name: nameSchema,
+  email: emailSchema,
+  service: serviceSchema,
+  subcategory: z.string(),
+  description: descriptionSchema,
+  budget: budgetSchema,
+}).superRefine((data, ctx) => {
+  const subs = getSubcategories(data.service)
+  if (!subs.includes(data.subcategory)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ['subcategory'],
+      message: 'Select a valid subcategory for the selected service',
+    })
+  }
+})
+
 const _handler = async function handler(req, res) {
   if (req.method === 'OPTIONS') {
     res.statusCode = 204
@@ -37,6 +55,11 @@ const _handler = async function handler(req, res) {
   }
   if (req.method !== 'POST') {
     return sendJson(res, 405, { code: 'METHOD_NOT_ALLOWED', message: 'Use POST.' })
+  }
+
+  const ct = req.headers['content-type'] || ''
+  if (!ct.includes('application/json')) {
+    return sendJson(res, 415, { code: 'UNSUPPORTED_MEDIA_TYPE', message: 'Send application/json.' })
   }
 
   let payload
@@ -66,7 +89,15 @@ const _handler = async function handler(req, res) {
       const supabase = createClient(supabaseUrl, supabaseKey)
       const { data: inserted, error } = await supabase
         .from('project_requests')
-        .insert([{ ...data, status: 'new' }])
+        .insert([{
+          name: sanitize(data.name),
+          email: data.email,
+          service: data.service,
+          subcategory: data.subcategory,
+          description: sanitize(data.description),
+          budget: data.budget,
+          status: 'new',
+        }])
         .select()
         .single()
       if (!error && inserted) recordId = inserted.id

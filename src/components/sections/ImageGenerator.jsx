@@ -12,12 +12,23 @@ import { useToast } from '../../context/useToast'
 const HISTORY_KEY = 'vibeflow:generation-history'
 const HISTORY_LIMIT = 8
 
+function isSafeUrl(value) {
+  return typeof value === 'string' && /^https:\/\/.+/.test(value)
+}
+
 function loadHistory() {
   try {
     const raw = localStorage.getItem(HISTORY_KEY)
     if (!raw) return []
     const parsed = JSON.parse(raw)
-    return Array.isArray(parsed) ? parsed : []
+    if (!Array.isArray(parsed)) return []
+    return parsed.filter(
+      (item) =>
+        item &&
+        typeof item === 'object' &&
+        isSafeUrl(item.url) &&
+        typeof item.prompt === 'string'
+    )
   } catch {
     return []
   }
@@ -141,7 +152,7 @@ export function ImageGeneratorSection() {
             </Button>
           </div>
 
-          {image ? (
+          {image && isSafeUrl(image.url) ? (
             <div className="generated-image-container">
               <img src={image.url} alt={image.prompt || 'Generated image'} className="generated-image" />
               <div className="generator-actions">

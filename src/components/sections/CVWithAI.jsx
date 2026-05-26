@@ -36,16 +36,28 @@ export function CVWithAI() {
   const [imagePreview, setImagePreview] = useState(null)
   const fileInputRef = useRef(null)
 
+  const MAX_IMG_SIZE = 2 * 1024 * 1024
+  const ALLOWED_IMG_TYPES = ['image/jpeg', 'image/png', 'image/webp']
+
   const handleImageUpload = (e) => {
     const file = e.target.files[0]
-    if (file) {
-      setProfileImage(file)
-      const reader = new FileReader()
-      reader.onloadend = () => {
-        setImagePreview(reader.result)
-      }
-      reader.readAsDataURL(file)
+    if (!file) return
+    if (!ALLOWED_IMG_TYPES.includes(file.type)) {
+      alert('Only JPEG, PNG, and WebP images are allowed.')
+      e.target.value = ''
+      return
     }
+    if (file.size > MAX_IMG_SIZE) {
+      alert('Image must be under 2MB.')
+      e.target.value = ''
+      return
+    }
+    setProfileImage(file)
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setImagePreview(reader.result)
+    }
+    reader.readAsDataURL(file)
   }
 
   const removeImage = () => {
@@ -315,45 +327,52 @@ ${cvData.certifications || 'Any certifications'}
                 <input
                   type="text"
                   placeholder="Full Name"
+                  maxLength={100}
                   value={cvData.personal.name}
                   onChange={e => updateCVData('personal', { ...cvData.personal, name: e.target.value })}
                 />
                 <input
                   type="email"
                   placeholder="Email"
+                  maxLength={254}
                   value={cvData.personal.email}
                   onChange={e => updateCVData('personal', { ...cvData.personal, email: e.target.value })}
                 />
                 <input
                   type="tel"
                   placeholder="Phone"
+                  maxLength={20}
                   value={cvData.personal.phone}
                   onChange={e => updateCVData('personal', { ...cvData.personal, phone: e.target.value })}
                 />
                 <input
                   type="text"
                   placeholder="Location"
+                  maxLength={200}
                   value={cvData.personal.location}
                   onChange={e => updateCVData('personal', { ...cvData.personal, location: e.target.value })}
                 />
                 <input
-                  type="text"
+                  type="url"
                   placeholder="LinkedIn URL"
                   className="full-width"
+                  maxLength={500}
                   value={cvData.personal.linkedin}
                   onChange={e => updateCVData('personal', { ...cvData.personal, linkedin: e.target.value })}
                 />
                 <input
-                  type="text"
+                  type="url"
                   placeholder="Portfolio URL (optional)"
                   className="full-width"
+                  maxLength={500}
                   value={cvData.personal.portfolio}
                   onChange={e => updateCVData('personal', { ...cvData.personal, portfolio: e.target.value })}
                 />
                 <input
-                  type="text"
+                  type="url"
                   placeholder="GitHub URL"
                   className="full-width"
+                  maxLength={500}
                   value={cvData.personal.github}
                   onChange={e => updateCVData('personal', { ...cvData.personal, github: e.target.value })}
                 />

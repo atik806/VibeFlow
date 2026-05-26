@@ -1,9 +1,11 @@
 import { InferenceClient } from '@huggingface/inference'
 import { rateLimit } from '../lib/rate-limiter.js'
+import { sanitize } from '../lib/validation.js'
 
 const DEFAULT_MODEL = 'stabilityai/stable-diffusion-xl-base-1.0'
 const DEFAULT_PROVIDER = 'fal-ai'
 const MAX_PROMPT_LENGTH = 500
+const MIN_PROMPT_LENGTH = 1
 
 async function readJson(req) {
   if (req.body && typeof req.body === 'object') return req.body
@@ -38,6 +40,11 @@ const _handler = async function handler(req, res) {
     return sendJson(res, 405, { code: 'METHOD_NOT_ALLOWED', message: 'Use POST.' })
   }
 
+  const ct = req.headers['content-type'] || ''
+  if (!ct.includes('application/json')) {
+    return sendJson(res, 415, { code: 'UNSUPPORTED_MEDIA_TYPE', message: 'Send application/json.' })
+  }
+
   const token = process.env.HF_TOKEN
   if (!token) {
     return sendJson(res, 503, {
@@ -54,8 +61,9 @@ const _handler = async function handler(req, res) {
     return sendJson(res, 400, { code: 'BAD_JSON', message: 'Invalid JSON body.' })
   }
 
-  const prompt = typeof payload?.prompt === 'string' ? payload.prompt.trim() : ''
-  if (!prompt) {
+  const rawPrompt = typeof payload?.prompt === 'string' ? payload.prompt : ''
+  const prompt = sanitize(rawPrompt)
+  if (prompt.length < MIN_PROMPT_LENGTH) {
     return sendJson(res, 400, { code: 'EMPTY_PROMPT', message: 'Prompt is required.' })
   }
   if (prompt.length > MAX_PROMPT_LENGTH) {

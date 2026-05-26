@@ -42,5 +42,25 @@ CREATE TABLE IF NOT EXISTS project_requests (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ALTER TABLE project_requests ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow public insert" ON project_requests FOR INSERT WITH CHECK (true);
+CREATE POLICY "Allow public insert" ON project_requests FOR INSERT WITH CHECK (
+  char_length(name) BETWEEN 2 AND 80
+  AND char_length(email) BETWEEN 5 AND 254
+  AND char_length(description) BETWEEN 20 AND 2000
+);
 CREATE POLICY "Allow authenticated read" ON project_requests FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Constraints for data integrity
+ALTER TABLE project_requests ADD CONSTRAINT valid_budget
+  CHECK (budget IN ('under-500','500-1000','1000-2500','2500-5000','5000+'));
+ALTER TABLE project_requests ADD CONSTRAINT valid_status
+  CHECK (status IN ('new','contacted','in-progress','completed','cancelled'));
+ALTER TABLE project_requests ADD CONSTRAINT name_length
+  CHECK (char_length(name) BETWEEN 2 AND 80);
+ALTER TABLE project_requests ADD CONSTRAINT desc_length
+  CHECK (char_length(description) BETWEEN 20 AND 2000);
+
+ALTER TABLE requests ADD CONSTRAINT prompt_length
+  CHECK (char_length(prompt) BETWEEN 1 AND 5000);
+
+ALTER TABLE error_logs ADD CONSTRAINT msg_length
+  CHECK (char_length(message) <= 2000);
