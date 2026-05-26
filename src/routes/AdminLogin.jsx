@@ -39,12 +39,14 @@ export default function AdminLogin() {
     setLoading(true)
 
     let token = null
+    let serverReachable = false
     try {
       const res = await fetch('/api/auth', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password }),
       })
+      serverReachable = true
       if (res.ok) {
         const data = await res.json()
         token = data.token
@@ -53,10 +55,15 @@ export default function AdminLogin() {
       /* offline — fall back to client check */
     }
 
-    if (token || password === ADMIN_SECRET) {
+    if (token) {
       attemptsRef.current = 0
       cooldownRef.current = null
       setAdminAuthenticated(true, token)
+      navigate(from, { replace: true })
+    } else if (!serverReachable && password === ADMIN_SECRET) {
+      attemptsRef.current = 0
+      cooldownRef.current = null
+      setAdminAuthenticated(true, null)
       navigate(from, { replace: true })
     } else {
       attemptsRef.current++
