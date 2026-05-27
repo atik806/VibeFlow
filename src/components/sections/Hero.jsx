@@ -3,7 +3,6 @@ import { motion, useReducedMotion } from 'framer-motion'
 import { Button } from '../ui/Button'
 import { useEffect, useRef } from 'react'
 import Typed from 'typed.js'
-import { FileText, Settings, Clock } from 'lucide-react'
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -58,10 +57,10 @@ function TerminalCard() {
         </div>
         <div className="terminal-tabs">
           <div className="terminal-tab active">
-            <FileText size={12} style={{marginRight:6}} />developer.tsx
+            developer.tsx
           </div>
           <div className="terminal-tab">
-            <Settings size={12} style={{marginRight:6}} />vibeflow.config.ts
+            vibeflow.config.ts
           </div>
         </div>
       </div>
@@ -92,7 +91,7 @@ function TerminalCard() {
           <span>Build ready <Syntax c="#e5c07b" bold>0</Syntax> <Syntax c="#abb2bf">errors</Syntax></span>
         </div>
         <div className="terminal-status-right">
-          <span><Clock size={12} style={{marginRight:4}} /> 2.4s</span>
+          <span>2.4s</span>
           <span>v2.0.1</span>
         </div>
       </div>
@@ -154,10 +153,6 @@ export function Hero({ onPrimary }) {
           <div className="hero-terminal">
             <div className="hero-terminal-glow" aria-hidden="true" />
             <TerminalCard />
-            <div className="hero-stats-badge">
-              <div className="hero-stats-badge-label">AI Performance</div>
-              <div className="hero-stats-badge-value">+248%</div>
-            </div>
           </div>
         </motion.div>
       </div>
