@@ -1,4 +1,4 @@
-import { Outlet } from 'react-router-dom'
+import { Outlet, useLocation } from 'react-router-dom'
 import { useDisclosure } from '../../hooks/useDisclosure'
 import { Navbar } from './Navbar'
 import { Footer } from './Footer'
@@ -9,6 +9,8 @@ import { ScrollToTop } from './ScrollToTop'
 // is always mounted at the layout level and opened via context/outlet prop.
 export function Layout() {
   const modal = useDisclosure(false)
+  const { pathname } = useLocation()
+  const hideFooter = pathname === '/login' || pathname === '/signup'
 
   return (
     <>
@@ -18,7 +20,7 @@ export function Layout() {
       <main id="main-content">
         <Outlet context={{ openRequestModal: modal.open }} />
       </main>
-      <Footer />
+      {!hideFooter && <Footer />}
       <RequestModal isOpen={modal.isOpen} onClose={modal.close} />
     </>
   )
