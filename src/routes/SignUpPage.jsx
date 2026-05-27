@@ -8,7 +8,7 @@ import { useSEO } from '../hooks/useSEO'
 import { Mail, Shield, Zap, Terminal as TerminalIcon, CheckCircle2 } from '../icons'
 
 const codeLines = [
-  { text: '> vibeflow auth --register', color: 'var(--accent-cyan)', delay: 0 },
+  { text: '> vibeflow auth --register', color: 'var(--accent-teal)', delay: 0 },
   { text: '> Generating developer profile...', color: 'var(--text-muted)', delay: 0.4 },
   { text: '> Profile scaffold ready', color: 'var(--success)', delay: 0.8 },
 ]

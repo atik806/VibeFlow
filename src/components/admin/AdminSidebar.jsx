@@ -52,7 +52,7 @@ export function AdminSidebar({ open, onClose, onOpenRequestModal }) {
             onOpenRequestModal?.()
           }}
           type="button"
-          style={{ color: 'var(--accent-cyan)', fontWeight: 600 }}
+          style={{ color: 'var(--accent-teal)', fontWeight: 600 }}
         >
           <Plus size={18} />
           Submit a Request

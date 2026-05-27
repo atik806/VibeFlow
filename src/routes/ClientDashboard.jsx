@@ -208,7 +208,7 @@ export default function ClientDashboard() {
             <span className="stat-trend">{stats.pending > 0 ? 'Awaiting review' : 'All clear'}</span>
           </motion.div>
           <motion.div variants={item} className="stat-card">
-            <span className="stat-value" style={{ color: 'var(--accent-cyan)' }}>{stats.active}</span>
+            <span className="stat-value" style={{ color: 'var(--accent-teal)' }}>{stats.active}</span>
             <span className="stat-label">In progress</span>
             <span className="stat-trend">{stats.active > 0 ? `${stats.active} active` : 'None active'}</span>
           </motion.div>

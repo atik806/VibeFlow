@@ -24,7 +24,7 @@
   transform: translateY(-4px);
 }
 
-.ai-feature-card.cyan .ai-feature-icon { color: var(--accent-cyan); }
+.ai-feature-card.cyan .ai-feature-icon { color: var(--accent-teal); }
 .ai-feature-card.purple .ai-feature-icon { color: var(--accent-purple); }
 .ai-feature-card.pink .ai-feature-icon { color: #ec4899; }
 .ai-feature-card.green .ai-feature-icon { color: #22c55e; }

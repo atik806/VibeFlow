@@ -8,7 +8,7 @@ import { useSEO } from '../hooks/useSEO'
 import { Zap, Shield, Terminal as TerminalIcon } from '../icons'
 
 const codeLines = [
-  { text: '> vibeflow auth --login', color: 'var(--accent-cyan)', delay: 0 },
+  { text: '> vibeflow auth --login', color: 'var(--accent-teal)', delay: 0 },
   { text: '> Initializing secure session...', color: 'var(--text-muted)', delay: 0.4 },
   { text: '> Connection established via 256-bit TLS', color: 'var(--success)', delay: 0.8 },
 ]

@@ -56,3 +56,13 @@
   from { transform: translateX(0); }
   to { transform: translateX(-50%); }
 }
+
+.badge-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent-blue);
+  display: inline-block;
+  margin-right: 6px;
+  animation: pulse 2s infinite;
+}
