@@ -1711,3 +1711,137 @@
   transition: var(--transition-fast);
 }
 .cv-remove-image:hover { background: rgba(224, 108, 117, 0.9); }
+
+/* ====================================================================
+   GLOBAL RESPONSIVE
+   ==================================================================== */
+
+@media (max-width: 768px) {
+  .hero { min-height: auto; padding-top: calc(var(--navbar-height) + 10px); padding-bottom: 40px; }
+  .services { padding: 80px 0; }
+  .services-grid { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 16px; }
+  .service-card { padding: 22px; }
+  .how-it-works { padding: 80px 0; }
+  .why-section { padding: 80px 0; }
+  .testimonials { padding: 80px 0; }
+  .faq { padding: 80px 0; }
+  .cta-banner { padding: 64px 0; }
+  .about-section { padding: 80px 0; }
+  .about-content { gap: 32px; }
+  .estimator-card { padding: 24px; }
+  .section-header { margin-bottom: 36px; }
+  .section-subtitle { font-size: 16px; }
+  .page-hero h1 { font-size: clamp(26px, 5vw, 40px); }
+  .page-hero p { font-size: 16px; padding: 0 16px; }
+  .page { padding-top: calc(var(--navbar-height) + 20px); padding-bottom: 48px; }
+  .page-hero { padding: 48px 0 28px; }
+  .contact-grid { gap: 32px; }
+  .step-number { width: 64px; height: 64px; font-size: 20px; margin-bottom: 16px; }
+  .step h3 { font-size: 17px; }
+  .feature-card { padding: 22px; }
+  .feature-card h3 { font-size: 15px; }
+  .testimonial-card { padding: 22px; }
+  .not-found { min-height: 50vh; }
+}
+
+@media (max-width: 640px) {
+  .hero-content { gap: 28px; }
+  .hero-text h1 { font-size: clamp(28px, 7vw, 40px); }
+  .hero-text p { font-size: 15px; }
+  .hero-buttons { flex-direction: column; align-items: center; }
+  .hero-buttons .btn { width: 100%; max-width: 300px; justify-content: center; }
+  .services-grid { grid-template-columns: 1fr; max-width: 400px; margin-left: auto; margin-right: auto; }
+  .service-card { padding: 20px; }
+  .service-card h3 { font-size: 16px; }
+  .stats-section { padding: 48px 0; }
+  .stat-number { font-size: clamp(26px, 8vw, 34px); }
+  .testimonial-card { padding: 18px; }
+  .testimonial-quote { font-size: 14px; }
+  .faq-summary { padding: 16px 18px; font-size: 14px; }
+  .faq-answer { padding: 0 18px 18px; font-size: 14px; }
+  .cta-content h2 { font-size: clamp(22px, 6vw, 30px); }
+  .cta-content p { font-size: 15px; }
+  .about-lead { font-size: 17px !important; }
+  .about-text p { font-size: 15px; }
+  .value-card { padding: 16px; }
+  .value-card h4 { font-size: 15px; }
+  .estimator-card { padding: 20px; }
+  .estimator-grid { gap: 24px; }
+  .estimator-quote { padding: 20px; }
+  .estimator-quote-label { font-size: 10px; }
+  .estimator-option { padding: 10px 14px; font-size: 13px; }
+  .generator-input input { padding: 14px 16px; font-size: 14px; }
+  .generate-btn { padding: 14px 20px; }
+  .prompt-presets { gap: 6px; }
+  .prompt-preset { font-size: 12px; padding: 4px 10px; }
+  .contact-info h3 { font-size: 18px; }
+}
+
+@media (max-width: 480px) {
+  .hero-text h1 { font-size: clamp(24px, 8vw, 32px); letter-spacing: -1px; }
+  .hero-text p { font-size: 14px; margin-bottom: 20px; }
+  .services { padding: 56px 0; }
+  .how-it-works { padding: 56px 0; }
+  .why-section { padding: 56px 0; }
+  .testimonials { padding: 56px 0; }
+  .faq { padding: 56px 0; }
+  .about-section { padding: 56px 0; }
+  .cta-banner { padding: 48px 0; }
+  .estimator { padding: 56px 0; }
+  .section-header { margin-bottom: 24px; }
+  .section-label { font-size: 11px; padding: 6px 12px; margin-bottom: 14px; }
+  .section-title { font-size: clamp(22px, 7vw, 28px); }
+  .section-subtitle { font-size: 14px; }
+  .service-card { padding: 18px; }
+  .service-card h3 { font-size: 15px; }
+  .service-icon { width: 44px; height: 44px; margin-bottom: 14px; }
+  .subcategory-tag { font-size: 10px; padding: 3px 8px; }
+  .step-number { width: 52px; height: 52px; font-size: 17px; }
+  .step h3 { font-size: 16px; }
+  .step p { font-size: 14px; }
+  .feature-card { padding: 18px; }
+  .feature-icon { width: 44px; height: 44px; margin-bottom: 14px; }
+  .features-grid { gap: 12px; }
+  .stat-item { padding: 12px; }
+  .stat-label { font-size: 11px; }
+  .generator-placeholder { padding: 36px 20px; }
+  .generator-placeholder .placeholder-icon { width: 48px; height: 48px; }
+  .faq-summary { padding: 14px 14px; font-size: 13px; }
+  .faq-answer { padding: 0 14px 16px; font-size: 13px; }
+  .about-content { gap: 24px; }
+  .values-grid { gap: 10px; }
+  .page-hero { padding: 32px 0 20px; }
+  .page-hero h1 { font-size: clamp(22px, 8vw, 30px); }
+  .page-hero p { font-size: 14px; }
+  .page { padding-top: calc(var(--navbar-height) + 12px); padding-bottom: 32px; }
+  .contact-info h3 { font-size: 17px; }
+  .contact-detail { padding: 12px 0; }
+  .contact-detail-icon { width: 34px; height: 34px; }
+  .contact-detail h4 { font-size: 13px; }
+  .contact-detail p { font-size: 13px; }
+  .error-boundary-card { padding: 24px 16px; }
+  .auth-page-content { padding-top: 24px; padding-bottom: 48px; }
+  .auth-card { padding: 24px 16px; }
+  .auth-terminal-header { padding: 12px 16px 10px; }
+}
+
+@media (max-width: 380px) {
+  .hero { padding-top: calc(var(--navbar-height) + 6px); padding-bottom: 28px; }
+  .hero-text h1 { font-size: 20px; }
+  .hero-buttons .btn { max-width: 100%; font-size: 14px; padding: 12px 24px; }
+  .step-number { width: 44px; height: 44px; font-size: 15px; }
+  .service-card { padding: 14px; }
+  .service-card p { font-size: 13px; }
+  .feature-card { padding: 14px; }
+  .feature-card p { font-size: 13px; }
+  .stat-number { font-size: 22px; }
+  .stat-label { font-size: 10px; }
+  .generated-image { border-radius: var(--radius-md); }
+  .generator-placeholder { padding: 24px 16px; }
+  .generator-placeholder p { font-size: 13px; }
+  .section-title { font-size: 20px; }
+  .faq-summary { font-size: 12px; padding: 12px 12px; }
+  .faq-answer { font-size: 12px; padding: 0 12px 14px; }
+  .page-hero { padding: 24px 0 16px; }
+  .auth-card { padding: 20px 12px; }
+}
