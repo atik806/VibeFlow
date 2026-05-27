@@ -10,6 +10,31 @@ export async function saveRequest(formData) {
 
   const supabase = getSupabase()
 
+  try {
+    if (typeof formData === 'object' && formData.name) {
+      const payload = {
+        name: formData.name,
+        email: formData.email,
+        service: formData.service || '',
+        subcategory: formData.subcategory || '',
+        description: formData.description || '',
+        budget: formData.budget || '',
+        status: 'new',
+        ...(formData.user_id ? { user_id: formData.user_id } : {}),
+      }
+      const { data, error } = await supabase
+        .from('project_requests')
+        .insert([payload])
+        .select()
+        .single()
+
+      if (!error) return data?.id
+      console.warn('[Supabase] project_requests insert failed, falling back to requests:', error.message)
+    }
+  } catch (e) {
+    console.warn('[Supabase] project_requests insert exception:', e?.message || e)
+  }
+
   const payload = typeof formData === 'string'
     ? { prompt: formData, status: 'pending' }
     : {

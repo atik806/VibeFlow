@@ -14,7 +14,7 @@ const BUDGETS = [
   { value: '5000+', label: '$5,000+' },
 ]
 
-export function RequestForm({ onSubmit }) {
+export function RequestForm({ onSubmit, user }) {
   const {
     register,
     handleSubmit,
@@ -24,7 +24,9 @@ export function RequestForm({ onSubmit }) {
     formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(requestSchema),
-    defaultValues: defaultRequest,
+    defaultValues: user
+      ? { ...defaultRequest, name: user.user_metadata?.full_name || '', email: user.email || '' }
+      : defaultRequest,
     mode: 'onBlur',
   })
 
@@ -39,29 +41,46 @@ export function RequestForm({ onSubmit }) {
   return (
     <form
       onSubmit={handleSubmit(async (values) => {
-        await onSubmit?.(values)
-        reset(defaultRequest)
+        const enriched = {
+          ...values,
+          name: user?.user_metadata?.full_name || values.name,
+          email: user?.email || values.email,
+          user_id: user?.id || undefined,
+        }
+        await onSubmit?.(enriched)
+        reset(user ? { ...defaultRequest, name: user.user_metadata?.full_name || '', email: user.email || '' } : defaultRequest)
       })}
       className="request-form"
       noValidate
     >
-      <div className="field-row">
-        <Input
-          label="Your Name"
-          placeholder="John Doe"
-          autoComplete="name"
-          error={errors.name?.message}
-          {...register('name')}
-        />
-        <Input
-          label="Email Address"
-          type="email"
-          placeholder="john@example.com"
-          autoComplete="email"
-          error={errors.email?.message}
-          {...register('email')}
-        />
-      </div>
+      {user ? (
+        <div className="field-row">
+          <div className="field field-authenticated">
+            <label className="field-label">Submitting as</label>
+            <p className="field-authenticated-info">
+              {user.user_metadata?.full_name || user.email} &lt;{user.email}&gt;
+            </p>
+          </div>
+        </div>
+      ) : (
+        <div className="field-row">
+          <Input
+            label="Your Name"
+            placeholder="John Doe"
+            autoComplete="name"
+            error={errors.name?.message}
+            {...register('name')}
+          />
+          <Input
+            label="Email Address"
+            type="email"
+            placeholder="john@example.com"
+            autoComplete="email"
+            error={errors.email?.message}
+            {...register('email')}
+          />
+        </div>
+      )}
 
       <div className="field-row">
         <Select

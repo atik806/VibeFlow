@@ -1,12 +1,17 @@
 import { useEffect } from 'react'
-import { NavLink } from 'react-router-dom'
+import { NavLink, Link, useLocation, useNavigate } from 'react-router-dom'
 import { createPortal } from 'react-dom'
 import { primaryNav } from '../../data/nav'
 import { LightningIcon, Close } from '../../icons'
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
-import { Button } from '../ui/Button'
+import { useAuth } from '../../hooks/useAuth'
 
-export function MobileDrawer({ isOpen, onClose, onOpenRequestModal }) {
+export function MobileDrawer({ isOpen, onClose, user }) {
+  const { signOut } = useAuth()
+  const navigate = useNavigate()
+  const { pathname } = useLocation()
+  const isDashboard = pathname.startsWith('/dashboard')
+
   useLockBodyScroll(isOpen)
 
   useEffect(() => {
@@ -44,23 +49,40 @@ export function MobileDrawer({ isOpen, onClose, onOpenRequestModal }) {
             <Close size={20} />
           </button>
         </div>
-        <nav className="drawer-nav" aria-label="Mobile primary">
-          {primaryNav.map((item) => (
-            <NavLink
-              key={item.href}
-              to={item.href}
-              onClick={onClose}
-              className={({ isActive }) => (isActive ? 'active' : undefined)}
-              end={item.href === '/'}
-            >
-              {item.label}
-            </NavLink>
-          ))}
-        </nav>
+        {!isDashboard && (
+          <nav className="drawer-nav" aria-label="Mobile primary">
+            {primaryNav.map((item) => (
+              <NavLink
+                key={item.href}
+                to={item.href}
+                onClick={onClose}
+                className={({ isActive }) => (isActive ? 'active' : undefined)}
+                end={item.href === '/'}
+              >
+                {item.label}
+              </NavLink>
+            ))}
+          </nav>
+        )}
         <div className="drawer-footer">
-          <Button variant="primary" block onClick={onOpenRequestModal}>
-            Submit a Request
-          </Button>
+          {user ? (
+            <>
+              <Link to="/dashboard" className="btn btn-outline btn-block" onClick={onClose}>
+                Dashboard
+              </Link>
+              <button
+                type="button"
+                className="btn btn-ghost btn-block"
+                onClick={async () => { await signOut(); navigate('/'); onClose?.() }}
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <Link to="/login" className="btn btn-outline btn-block" onClick={onClose}>
+              Client Portal
+            </Link>
+          )}
         </div>
       </aside>
     </>,

@@ -3,10 +3,12 @@ import { Modal } from '../ui/Modal'
 import { Button } from '../ui/Button'
 import { RequestForm } from '../forms/RequestForm'
 import { useToast } from '../../context/useToast'
+import { useAuth } from '../../hooks/useAuth'
 import { Check } from '../../icons'
 import { submitRequest } from '../../lib/api/submitRequest'
 
 export function RequestModal({ isOpen, onClose, onSubmitted }) {
+  const { user } = useAuth()
   const [submitted, setSubmitted] = useState(false)
   const [submittedName, setSubmittedName] = useState('')
   const toast = useToast()
@@ -52,7 +54,7 @@ export function RequestModal({ isOpen, onClose, onSubmitted }) {
           </div>
         </div>
       ) : (
-        <RequestForm onSubmit={handleSubmit} />
+        <RequestForm onSubmit={handleSubmit} user={user} />
       )}
     </Modal>
   )

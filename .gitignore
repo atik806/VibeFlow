@@ -39,3 +39,6 @@ __pycache__/
 
 # ML model weights
 *.pt
+
+# Local test scripts (may contain real credentials)
+check_supabase.mjs

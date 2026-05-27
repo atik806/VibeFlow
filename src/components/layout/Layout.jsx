@@ -14,7 +14,7 @@ export function Layout() {
     <>
       <a href="#main-content" className="skip-link">Skip to content</a>
       <ScrollToTop />
-      <Navbar onOpenRequestModal={modal.open} />
+      <Navbar />
       <main id="main-content">
         <Outlet context={{ openRequestModal: modal.open }} />
       </main>

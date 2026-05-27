@@ -28,6 +28,13 @@ export {
   Copy,
   Upload,
   X,
+  Terminal,
+  Shield,
+  Calendar,
+  Activity,
+  Clock,
+  BarChart3,
+  Plus,
 } from 'lucide-react'
 
 export function StarIcon({ size = 18 }) {

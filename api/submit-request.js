@@ -36,6 +36,7 @@ const bodySchema = z.object({
   subcategory: z.string(),
   description: descriptionSchema,
   budget: budgetSchema,
+  user_id: z.string().uuid().optional(),
 }).superRefine((data, ctx) => {
   const subs = getSubcategories(data.service)
   if (!subs.includes(data.subcategory)) {
@@ -97,6 +98,7 @@ const _handler = async function handler(req, res) {
           description: sanitize(data.description),
           budget: data.budget,
           status: 'new',
+          ...(data.user_id ? { user_id: data.user_id } : {}),
         }])
         .select()
         .single()

@@ -3,8 +3,10 @@ import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import { Layout } from './components/layout/Layout'
 import { AdminLayout } from './components/admin/AdminLayout'
 import { AdminGuard } from './components/admin/AdminGuard'
+import { UserGuard } from './components/auth/UserGuard'
 import { ErrorBoundary } from './components/ui/ErrorBoundary'
 import { ToastProvider } from './context/ToastContext'
+import { AuthProvider } from './context/AuthContext'
 import { Spinner } from './components/ui/Spinner'
 import { VisitorTracker } from './components/VisitorTracker'
 
@@ -22,6 +24,10 @@ const ContactPage = lazy(() => import('./routes/ContactPage'))
 const PrivacyPage = lazy(() => import('./routes/PrivacyPage'))
 const TermsPage = lazy(() => import('./routes/TermsPage'))
 const NotFoundPage = lazy(() => import('./routes/NotFoundPage'))
+
+const LoginPage = lazy(() => import('./routes/LoginPage'))
+const SignUpPage = lazy(() => import('./routes/SignUpPage'))
+const ClientDashboard = lazy(() => import('./routes/ClientDashboard'))
 
 const AdminLogin = lazy(() => import('./routes/AdminLogin'))
 const AdminDashboard = lazy(() => import('./routes/AdminDashboard'))
@@ -47,45 +53,58 @@ export default function App() {
   return (
     <ErrorBoundary>
       <ToastProvider>
-        <BrowserRouter>
-          <Suspense fallback={<PageFallback />}>
-            <VisitorTracker />
-            <Routes>
-              <Route element={<Layout />}>
-                <Route index element={<Home />} />
-                <Route path="services" element={<ServicesPage />} />
-                <Route path="ai-generator" element={<AIGeneratorPage />} />
-                <Route path="ai-features" element={<AIFeaturesPage />} />
-                <Route path="play-with-ai" element={<PlayWithAIPage />} />
-                <Route path="cv-with-ai" element={<CVWithAIPage />} />
-                <Route path="object-detection" element={<ObjectDetectionPage />} />
-                <Route path="games" element={<GamesPage />} />
-                <Route path="about" element={<AboutPage />} />
-                <Route path="faq" element={<FAQPage />} />
-                <Route path="contact" element={<ContactPage />} />
-                <Route path="privacy" element={<PrivacyPage />} />
-                <Route path="terms" element={<TermsPage />} />
-                <Route path="*" element={<NotFoundPage />} />
-              </Route>
+        <AuthProvider>
+          <BrowserRouter>
+            <Suspense fallback={<PageFallback />}>
+              <VisitorTracker />
+              <Routes>
+                <Route element={<Layout />}>
+                  <Route index element={<Home />} />
+                  <Route path="services" element={<ServicesPage />} />
+                  <Route path="ai-features" element={<AIFeaturesPage />} />
+                  <Route path="about" element={<AboutPage />} />
+                  <Route path="faq" element={<FAQPage />} />
+                  <Route path="contact" element={<ContactPage />} />
+                  <Route path="privacy" element={<PrivacyPage />} />
+                  <Route path="terms" element={<TermsPage />} />
 
-              <Route path="/admin/login" element={<AdminLogin />} />
+                  <Route path="login" element={<LoginPage />} />
+                  <Route path="signup" element={<SignUpPage />} />
 
-              <Route
-                path="/admin"
-                element={
-                  <AdminGuard>
-                    <AdminLayout />
-                  </AdminGuard>
-                }
-              >
-                <Route index element={<AdminDashboard />} />
-                <Route path="requests" element={<AdminRequests />} />
-                <Route path="messages" element={<AdminMessages />} />
-                <Route path="settings" element={<AdminSettings />} />
-              </Route>
-            </Routes>
-          </Suspense>
-        </BrowserRouter>
+                  <Route element={<UserGuard />}>
+                    <Route path="dashboard" element={<ClientDashboard />} />
+                  </Route>
+
+                  <Route element={<UserGuard />}>
+                    <Route path="ai-generator" element={<AIGeneratorPage />} />
+                    <Route path="play-with-ai" element={<PlayWithAIPage />} />
+                    <Route path="cv-with-ai" element={<CVWithAIPage />} />
+                    <Route path="object-detection" element={<ObjectDetectionPage />} />
+                    <Route path="games" element={<GamesPage />} />
+                  </Route>
+
+                  <Route path="*" element={<NotFoundPage />} />
+                </Route>
+
+                <Route path="/admin/login" element={<AdminLogin />} />
+
+                <Route
+                  path="/admin"
+                  element={
+                    <AdminGuard>
+                      <AdminLayout />
+                    </AdminGuard>
+                  }
+                >
+                  <Route index element={<AdminDashboard />} />
+                  <Route path="requests" element={<AdminRequests />} />
+                  <Route path="messages" element={<AdminMessages />} />
+                  <Route path="settings" element={<AdminSettings />} />
+                </Route>
+              </Routes>
+            </Suspense>
+          </BrowserRouter>
+        </AuthProvider>
       </ToastProvider>
     </ErrorBoundary>
   )
