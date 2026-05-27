@@ -94,3 +94,26 @@ export async function getAllRequests() {
   if (error) return []
   return data
 }
+
+export async function submitContactMessage({ name, email, subject, message }) {
+  if (!isSupabaseConfigured()) {
+    if (import.meta.env.DEV) {
+      console.warn('[Supabase] submitContactMessage skipped: Supabase not configured')
+    }
+    return null
+  }
+
+  const supabase = getSupabase()
+  const { data, error } = await supabase
+    .from('messages')
+    .insert([{ name, email, subject, message, read: false }])
+    .select()
+    .single()
+
+  if (error) {
+    console.error('[Supabase] Error submitting contact message:', error.message)
+    return null
+  }
+
+  return data?.id
+}

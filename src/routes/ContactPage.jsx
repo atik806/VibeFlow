@@ -1,19 +1,40 @@
+import { useState } from 'react'
 import { useOutletContext } from 'react-router-dom'
-import { Mail, Phone, MapPin } from 'lucide-react'
+import { Mail, Phone, MapPin, Send, Loader } from 'lucide-react'
 import { useSEO } from '../hooks/useSEO'
 import { Button } from '../components/ui/Button'
-import { RequestForm } from '../components/forms/RequestForm'
+import { Input, Textarea } from '../components/ui/Field'
 import { useToast } from '../context/useToast'
 import { env } from '../lib/env'
+import { submitContactMessage } from '../lib/api/supabase'
 
 export default function ContactPage() {
   const { openRequestModal } = useOutletContext()
   const toast = useToast()
+  const [loading, setLoading] = useState(false)
+  const [form, setForm] = useState({ name: '', email: '', subject: '', message: '' })
   useSEO({
     title: 'Contact',
     description:
       'Get in touch with the Vibe Flow team. Email, phone, or submit a project brief directly.',
   })
+
+  const handleChange = (e) => {
+    setForm((prev) => ({ ...prev, [e.target.name]: e.target.value }))
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setLoading(true)
+    const id = await submitContactMessage(form)
+    if (id) {
+      toast.success('Message sent!', "We'll reach out within 24 hours.")
+      setForm({ name: '', email: '', subject: '', message: '' })
+    } else {
+      toast.error('Failed to send', 'Please try again or email us directly.')
+    }
+    setLoading(false)
+  }
 
   return (
     <div className="page">
@@ -65,17 +86,50 @@ export default function ContactPage() {
           </aside>
 
           <div className="card">
-            <h3 style={{ marginBottom: 8 }}>Or submit a brief here</h3>
+            <h3 style={{ marginBottom: 8 }}>Send us a message</h3>
             <p style={{ color: 'var(--text-secondary)', marginBottom: 24 }}>
-              Same form, directly on the page.
+              Fill in the form below and we'll get back to you within 24 hours.
             </p>
-            <RequestForm
-              onSubmit={async (values) => {
-                await new Promise((r) => setTimeout(r, 600))
-                console.log('[Contact form]', values)
-                toast.success('Message sent!', "We'll reach out within 24 hours.")
-              }}
-            />
+            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+              <Input
+                name="name"
+                label="Your Name"
+                placeholder="John Doe"
+                value={form.name}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                name="email"
+                label="Email Address"
+                type="email"
+                placeholder="john@example.com"
+                value={form.email}
+                onChange={handleChange}
+                required
+              />
+              <Input
+                name="subject"
+                label="Subject"
+                placeholder="What's this about?"
+                value={form.subject}
+                onChange={handleChange}
+                required
+              />
+              <Textarea
+                name="message"
+                label="Message"
+                placeholder="Tell us more about your inquiry…"
+                rows={5}
+                value={form.message}
+                onChange={handleChange}
+                required
+              />
+              <Button variant="primary" block disabled={loading}>
+                {loading ? <Loader size={16} className="spin" /> : <Send size={16} />}
+                <span>{loading ? 'Sending...' : 'Send Message'}</span>
+              </Button>
+            </form>
           </div>
         </div>
       </div>
