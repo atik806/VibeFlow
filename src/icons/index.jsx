@@ -35,6 +35,7 @@ export {
   Clock,
   BarChart3,
   Plus,
+  DollarSign,
 } from 'lucide-react'
 
 export function StarIcon({ size = 18 }) {

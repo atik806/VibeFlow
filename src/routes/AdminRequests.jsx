@@ -11,11 +11,11 @@ import { Modal } from '../components/ui/Modal'
 import { parseRequest } from '../lib/parseRequest'
 
 const BUDGET_LABELS = {
-  'under-500': 'Under $500',
-  '500-1000': '$500 – $1,000',
-  '1000-2500': '$1,000 – $2,500',
-  '2500-5000': '$2,500 – $5,000',
-  '5000+': '$5,000+',
+  'under-10000': 'Under ৳10,000',
+  '10000-25000': '৳10,000 – ৳25,000',
+  '25000-50000': '৳25,000 – ৳50,000',
+  '50000-100000': '৳50,000 – ৳1,00,000',
+  '100000-plus': '৳1,00,000+',
 }
 
 export default function AdminRequests() {

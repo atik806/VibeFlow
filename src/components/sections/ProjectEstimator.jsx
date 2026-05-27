@@ -16,11 +16,11 @@ import { SectionHeader } from '../ui/SectionHeader'
 import { Button } from '../ui/Button'
 
 const TYPES = [
-  { id: 'design', label: 'Design', icon: Palette, range: [300, 2000] },
-  { id: 'development', label: 'Development', icon: Code2, range: [800, 8000] },
-  { id: 'writing', label: 'Writing', icon: FileText, range: [150, 1500] },
-  { id: 'tech', label: 'AI & Tech', icon: BrainCircuit, range: [1000, 15000] },
-  { id: 'other', label: 'Other', icon: Sparkles, range: [200, 3000] },
+  { id: 'design', label: 'Design', icon: Palette, range: [10000, 50000] },
+  { id: 'development', label: 'Development', icon: Code2, range: [20000, 200000] },
+  { id: 'writing', label: 'Writing', icon: FileText, range: [5000, 25000] },
+  { id: 'tech', label: 'AI & Tech', icon: BrainCircuit, range: [25000, 300000] },
+  { id: 'other', label: 'Other', icon: Sparkles, range: [5000, 50000] },
 ]
 
 const COMPLEXITY = [
@@ -37,12 +37,11 @@ const TIMELINE = [
 ]
 
 function snap(n) {
-  // Round to nearest $50 for clean display
-  return Math.round(n / 50) * 50
+  return Math.round(n / 500) * 500
 }
 
 function format(n) {
-  return '$' + n.toLocaleString('en-US')
+  return '৳' + n.toLocaleString('en-US')
 }
 
 function OptionGroup({ label, icon: Icon, options, value, onChange, renderOption }) {

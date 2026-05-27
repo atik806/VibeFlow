@@ -18,7 +18,7 @@ export const requestSchema = z
       .string()
       .min(20, 'Please give us at least 20 characters of detail.')
       .max(2000, 'Please keep it under 2000 characters.'),
-    budget: z.enum(['under-500', '500-1000', '1000-2500', '2500-5000', '5000+'], {
+    budget: z.enum(['under-10000', '10000-25000', '25000-50000', '50000-100000', '100000-plus'], {
       message: 'Select a budget range.',
     }),
   })
