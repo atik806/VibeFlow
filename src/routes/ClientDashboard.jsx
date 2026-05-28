@@ -60,7 +60,8 @@ const item = {
 
 export default function ClientDashboard() {
   const { user } = useAuth()
-  const { openRequestModal } = useOutletContext()
+  const outletCtx = useOutletContext() || {}
+  const { openRequestModal } = outletCtx
   const [requests, setRequests] = useState([])
   const [profileCreatedAt, setProfileCreatedAt] = useState(null)
   const [loading, setLoading] = useState(true)
