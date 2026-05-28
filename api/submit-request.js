@@ -9,6 +9,10 @@ import {
   getSubcategories,
   sanitize,
 } from '../lib/validation.js'
+import { logger } from '../lib/logger.js'
+import { initSentry, captureError } from '../lib/sentry.js'
+
+initSentry()
 
 function sendJson(res, status, body) {
   res.statusCode = status
@@ -72,6 +76,7 @@ const _handler = async function handler(req, res) {
 
   const parsed = bodySchema.safeParse(payload)
   if (!parsed.success) {
+    logger.warn('Request validation failed', { errors: parsed.error.flatten().fieldErrors })
     return sendJson(res, 422, {
       code: 'VALIDATION_ERROR',
       errors: parsed.error.flatten().fieldErrors,
@@ -102,9 +107,13 @@ const _handler = async function handler(req, res) {
         }])
         .select()
         .single()
-      if (!error && inserted) recordId = inserted.id
+      if (!error && inserted) {
+        recordId = inserted.id
+        logger.info('Request submitted', { id: recordId, service: data.service })
+      }
     } catch (err) {
-      console.error('[submit-request] Supabase insert error:', err)
+      captureError(err, { route: '/api/submit-request', service: data.service })
+      logger.error('Supabase insert error', { message: err.message })
     }
   }
 

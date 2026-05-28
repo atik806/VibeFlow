@@ -1,9 +1,13 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
+import { initSentry, captureError } from './lib/sentry.js'
 import App from './App.jsx'
 import './styles/index.css'
 
+initSentry()
+
 async function logGlobalError(level, message, error) {
+  captureError(error, { route: window.location.pathname, level })
   try {
     const { logError } = await import('./lib/api/monitoring')
     await logError({

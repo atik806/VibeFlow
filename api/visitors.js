@@ -1,6 +1,10 @@
 import { createClient } from '@supabase/supabase-js'
 import { rateLimit } from '../lib/rate-limiter.js'
 import { requireAuth, requireServerEnv } from '../lib/validation.js'
+import { logger } from '../lib/logger.js'
+import { initSentry, captureError } from '../lib/sentry.js'
+
+initSentry()
 
 function sendJson(res, status, body) {
   res.statusCode = status
@@ -57,7 +61,8 @@ const _handler = async function handler(req, res) {
       last24h: last24h?.length || 0,
     })
   } catch (err) {
-    console.error('[api/visitors] Error:', err.message)
+    captureError(err, { route: '/api/visitors' })
+    logger.error('Visitor query failed', { message: err.message })
     return sendJson(res, 502, { code: 'QUERY_FAILED', message: err.message })
   }
 }

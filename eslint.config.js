@@ -34,9 +34,9 @@ export default defineConfig([
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]', argsIgnorePattern: '^_' }],
     },
   },
-  // Node-side files: api/* serverless handlers and vite.config.js
+  // Node-side files: api/* serverless handlers, lib/* utilities, and vite.config.js
   {
-    files: ['api/**/*.js', 'vite.config.js'],
+    files: ['api/**/*.js', 'lib/**/*.js', 'vite.config.js'],
     extends: [js.configs.recommended],
     languageOptions: {
       ecmaVersion: 'latest',

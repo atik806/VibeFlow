@@ -1,11 +1,22 @@
+import { z } from 'zod'
 import { InferenceClient } from '@huggingface/inference'
 import { rateLimit } from '../lib/rate-limiter.js'
 import { sanitize } from '../lib/validation.js'
+import { logger } from '../lib/logger.js'
+import { initSentry, captureError } from '../lib/sentry.js'
+
+initSentry()
 
 const DEFAULT_MODEL = 'stabilityai/stable-diffusion-xl-base-1.0'
 const DEFAULT_PROVIDER = 'fal-ai'
-const MAX_PROMPT_LENGTH = 500
-const MIN_PROMPT_LENGTH = 1
+
+const promptSchema = z.object({
+  prompt: z
+    .string()
+    .min(1, 'Prompt is required')
+    .max(500, `Prompt must be 500 characters or fewer`)
+    .transform((v) => sanitize(v)),
+})
 
 async function readJson(req) {
   if (req.body && typeof req.body === 'object') return req.body
@@ -47,6 +58,7 @@ const _handler = async function handler(req, res) {
 
   const token = process.env.HF_TOKEN
   if (!token) {
+    logger.warn('HF_TOKEN not configured')
     return sendJson(res, 503, {
       code: 'NOT_CONFIGURED',
       message:
@@ -61,17 +73,16 @@ const _handler = async function handler(req, res) {
     return sendJson(res, 400, { code: 'BAD_JSON', message: 'Invalid JSON body.' })
   }
 
-  const rawPrompt = typeof payload?.prompt === 'string' ? payload.prompt : ''
-  const prompt = sanitize(rawPrompt)
-  if (prompt.length < MIN_PROMPT_LENGTH) {
-    return sendJson(res, 400, { code: 'EMPTY_PROMPT', message: 'Prompt is required.' })
-  }
-  if (prompt.length > MAX_PROMPT_LENGTH) {
-    return sendJson(res, 400, {
-      code: 'PROMPT_TOO_LONG',
-      message: `Prompt must be ${MAX_PROMPT_LENGTH} characters or fewer.`,
+  const parsed = promptSchema.safeParse(payload)
+  if (!parsed.success) {
+    logger.warn('Prompt validation failed', { errors: parsed.error.flatten().fieldErrors })
+    return sendJson(res, 422, {
+      code: 'VALIDATION_ERROR',
+      errors: parsed.error.flatten().fieldErrors,
     })
   }
+
+  const { prompt } = parsed.data
 
   try {
     const client = new InferenceClient(token)
@@ -84,6 +95,7 @@ const _handler = async function handler(req, res) {
     const arrayBuffer = await blob.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
+    logger.info('Image generated', { model: process.env.HF_MODEL || DEFAULT_MODEL })
     res.statusCode = 200
     res.setHeader('Content-Type', blob.type || 'image/png')
     res.setHeader('Cache-Control', 'private, no-store')
@@ -92,7 +104,8 @@ const _handler = async function handler(req, res) {
   } catch (err) {
     const message = err?.message || 'Image generation failed.'
     const status = err?.status || 502
-    console.error('[api/generate-image] failed:', message)
+    captureError(err, { route: '/api/generate-image' })
+    logger.error(message, { status })
     return sendJson(res, status, {
       code: 'UPSTREAM_ERROR',
       message: status === 503
