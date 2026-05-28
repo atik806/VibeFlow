@@ -14,6 +14,7 @@ export {
   Info,
   Mail,
   Phone,
+  Map,
   MapPin,
   Loader2,
   RefreshCcw,

@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { Eye, Gamepad2, FileText, ChevronRight, Wand2 } from '../../icons'
+import { Eye, Gamepad2, FileText, ChevronRight, Wand2, Map } from '../../icons'
 import { useNavigate, useLocation } from 'react-router-dom'
 
 const categories = [
@@ -34,6 +34,14 @@ const categories = [
     description: 'Create, analyze, and improve your resume with AI',
     color: '#06b6d4',
     path: '/cv-with-ai',
+  },
+  {
+    id: 'map-poster',
+    icon: Map,
+    title: 'Map Poster',
+    description: 'Design custom map posters for any city or location',
+    color: '#f97316',
+    path: '/map-poster',
   },
 ]
 

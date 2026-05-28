@@ -15,6 +15,7 @@ const ServicesPage = lazy(() => import('./routes/ServicesPage'))
 const AIGeneratorPage = lazy(() => import('./routes/AIGeneratorPage'))
 const AIFeaturesPage = lazy(() => import('./routes/AIFeaturesPage'))
 const PlayWithAIPage = lazy(() => import('./routes/PlayWithAIPage'))
+const MapPosterPage = lazy(() => import('./routes/MapPosterPage'))
 const ObjectDetectionPage = lazy(() => import('./routes/ObjectDetectionPage'))
 const GamesPage = lazy(() => import('./routes/GamesPage'))
 const CVWithAIPage = lazy(() => import('./routes/CVWithAIPage'))
@@ -87,6 +88,15 @@ export default function App() {
                 </Route>
 
                 <Route path="/admin/login" element={<AdminLogin />} />
+
+                <Route
+                  path="/map-poster"
+                  element={
+                    <UserGuard>
+                      <MapPosterPage />
+                    </UserGuard>
+                  }
+                />
 
                 <Route
                   path="/admin"

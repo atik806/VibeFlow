@@ -9,7 +9,7 @@ import {
   FileText,
   Gamepad2,
   Eye,
-  Wand2,
+  Map,
   ArrowRight,
   Calendar,
   Activity,
@@ -26,7 +26,7 @@ const AI_FEATURES = [
   { href: '/cv-with-ai', icon: FileText, label: 'CV with AI', desc: 'Build a professional resume' },
   { href: '/object-detection', icon: Eye, label: 'Object Detection', desc: 'Real-time object detection' },
   { href: '/games', icon: Gamepad2, label: 'AI Games', desc: 'Interactive AI-powered games' },
-  { href: '/play-with-ai', icon: Wand2, label: 'Play with AI', desc: 'Experiment with AI tools' },
+  { href: '/map-poster', icon: Map, label: 'Map Poster', desc: 'Design custom map posters' },
 ]
 
 const BUDGET_LABELS = {

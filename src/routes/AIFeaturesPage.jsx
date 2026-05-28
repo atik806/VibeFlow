@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom'
 import { useSEO } from '../hooks/useSEO'
 import { SectionHeader } from '../components/ui/SectionHeader'
-import { Wand2, FileText, Eye, Gamepad2 } from 'lucide-react'
+import { Wand2, FileText, Eye, Gamepad2, Map } from 'lucide-react'
 
 const aiFeatures = [
   {
@@ -35,6 +35,14 @@ const aiFeatures = [
     icon: Gamepad2,
     href: '/games',
     color: 'orange',
+  },
+  {
+    id: 'map-poster',
+    title: 'Map Poster',
+    description: 'Design custom map posters for any city or location',
+    icon: Map,
+    href: '/map-poster',
+    color: 'pink',
   },
 ]
 

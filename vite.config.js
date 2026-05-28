@@ -1,5 +1,6 @@
 import { defineConfig, loadEnv } from 'vite'
 import react from '@vitejs/plugin-react'
+import path from 'path'
 
 // Mounts our /api/* handlers as middleware in dev so the same code
 // that runs as a Vercel serverless function also runs locally with
@@ -72,8 +73,16 @@ export default defineConfig(({ mode }) => {
 
   return {
     plugins: [react(), apiDevMiddleware()],
+    resolve: {
+      alias: {
+        '@': path.resolve(__dirname, 'src'),
+      },
+    },
     server: {
       port: 5173,
+    },
+    optimizeDeps: {
+      exclude: ['react-icons'],
     },
   }
 })
