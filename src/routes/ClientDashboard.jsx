@@ -80,6 +80,28 @@ export default function ClientDashboard() {
 
       const supabase = getSupabase()
 
+      // Ensure profile exists for OAuth users
+      try {
+        const { data: existing } = await supabase
+          .from('profiles')
+          .select('id')
+          .eq('id', user.id)
+          .single()
+
+        if (!existing) {
+          // Profile doesn't exist, create it
+          const email = user.email || ''
+          const fullName = user.user_metadata?.full_name || email.split('@')[0] || 'User'
+          await supabase
+            .from('profiles')
+            .insert({ id: user.id, email, full_name: fullName })
+            .single()
+        }
+      } catch (err) {
+        console.warn('[Dashboard] Profile check/create failed:', err.message)
+        // Continue anyway - profile might exist or user might not have permission
+      }
+
       const [reqResult, profResult] = await Promise.all([
         supabase
           .from('project_requests')

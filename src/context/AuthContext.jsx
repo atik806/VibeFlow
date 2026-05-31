@@ -86,6 +86,51 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }, [])
 
+  // Create profile after OAuth sign-in (called from AuthCallback)
+  const ensureProfileExists = useCallback(async (user) => {
+    if (!user || !isSupabaseConfigured()) return
+    const supabase = getSupabase()
+
+    try {
+      // Check if profile exists
+      const { data: existing, error: checkError } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('id', user.id)
+        .single()
+
+      if (existing) {
+        console.log('[Auth] Profile already exists')
+        return
+      }
+
+      // Profile doesn't exist, create it
+      const email = user.email || ''
+      const fullName = user.user_metadata?.full_name || email.split('@')[0] || 'User'
+
+      console.log('[Auth] Creating profile for user:', user.id)
+      const { error: insertError } = await supabase
+        .from('profiles')
+        .insert({ id: user.id, email, full_name: fullName })
+
+      if (insertError) {
+        // 23505 = unique violation (already exists, race condition)
+        if (insertError.code === '23505') {
+          console.log('[Auth] Profile already exists (race condition)')
+          return
+        }
+        console.error('[Auth] Failed to create profile:', insertError.message)
+        throw insertError
+      }
+
+      console.log('[Auth] Profile created successfully')
+    } catch (err) {
+      console.error('[Auth] ensureProfileExists error:', err)
+      // Don't throw - allow sign-in to proceed even if profile creation fails
+      // The dashboard will handle missing profiles gracefully
+    }
+  }, [])
+
   const signOut = useCallback(async () => {
     if (!isSupabaseConfigured()) return
     const supabase = getSupabase()
@@ -94,7 +139,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithOAuth, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithOAuth, signOut, ensureProfileExists }}>
       {children}
     </AuthContext.Provider>
   )

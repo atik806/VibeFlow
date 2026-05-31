@@ -1,12 +1,14 @@
 import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getSupabase } from '../lib/supabaseClient'
+import { useAuth } from '../hooks/useAuth'
 import { Spinner } from '../components/ui/Spinner'
 
 const exchangedCodes = new Set()
 
 export default function AuthCallback() {
   const navigate = useNavigate()
+  const { ensureProfileExists } = useAuth()
 
   useEffect(() => {
     const supabase = getSupabase()
@@ -22,7 +24,13 @@ export default function AuthCallback() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       console.log('[AuthCallback] Auth state changed:', event, !!session?.user)
       if (event === 'SIGNED_IN' && session?.user) {
-        redirect('/dashboard')
+        // Create profile for OAuth users
+        ensureProfileExists(session.user).then(() => {
+          redirect('/dashboard')
+        }).catch((err) => {
+          console.error('[AuthCallback] Profile creation error:', err)
+          redirect('/dashboard') // Still redirect even if profile creation fails
+        })
       }
     })
 
@@ -32,7 +40,7 @@ export default function AuthCallback() {
         console.log('[AuthCallback] Full URL:', window.location.href)
         console.log('[AuthCallback] Search:', window.location.search)
         console.log('[AuthCallback] Hash:', window.location.hash)
-        
+
         const params = new URLSearchParams(window.location.search)
         const code = params.get('code')
         console.log('[AuthCallback] Code from URL:', !!code, code?.substring(0, 20))
@@ -51,6 +59,8 @@ export default function AuthCallback() {
           }
           console.log('[AuthCallback] Code exchanged, user:', !!data?.session?.user)
           if (data?.session?.user) {
+            // Create profile for OAuth users
+            await ensureProfileExists(data.session.user)
             // Wait for auth state to propagate
             await new Promise((r) => setTimeout(r, 200))
             redirect('/dashboard')
@@ -75,6 +85,8 @@ export default function AuthCallback() {
             }
             console.log('[AuthCallback] Session set, user:', !!data?.session?.user)
             if (data?.session?.user) {
+              // Create profile for OAuth users
+              await ensureProfileExists(data.session.user)
               // Wait for auth state to propagate
               await new Promise((r) => setTimeout(r, 200))
               redirect('/dashboard')
@@ -106,7 +118,7 @@ export default function AuthCallback() {
     return () => {
       subscription.unsubscribe()
     }
-  }, [navigate])
+  }, [navigate, ensureProfileExists])
 
   return (
     <div style={{ minHeight: '60vh', display: 'grid', placeItems: 'center', flexDirection: 'column', gap: '20px' }}>
