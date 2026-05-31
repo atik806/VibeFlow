@@ -1,5 +1,6 @@
 import { useEffect, useState, useCallback } from 'react'
 import { getSupabase, isSupabaseConfigured } from '../lib/supabaseClient'
+import { getAppOrigin } from '../lib/appOrigin'
 import { AuthContext } from './authContextObject'
 
 export function AuthProvider({ children }) {
@@ -71,12 +72,17 @@ export function AuthProvider({ children }) {
     return data
   }, [])
 
-  const signInWithOAuth = useCallback(async (provider, options) => {
+  const signInWithOAuth = useCallback(async (provider) => {
     if (!isSupabaseConfigured()) {
       throw new Error('Auth is not configured. Set Supabase environment variables.')
     }
     const supabase = getSupabase()
-    const { error } = await supabase.auth.signInWithOAuth({ provider, options })
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: `${getAppOrigin()}/dashboard`,
+      },
+    })
     if (error) throw error
   }, [])
 

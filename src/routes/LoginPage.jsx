@@ -1,11 +1,13 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate, useLocation } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../hooks/useAuth'
 import { Input } from '../components/ui/Field'
 import { Button } from '../components/ui/Button'
+import { OAuthProviders } from '../components/auth/OAuthProviders'
+import { isSupabaseConfigured } from '../lib/supabaseClient'
 import { useSEO } from '../hooks/useSEO'
-import { Zap, Shield, Terminal as TerminalIcon, GoogleIcon, AppleIcon } from '../icons'
+import { Zap, Shield, Terminal as TerminalIcon } from '../icons'
 
 const codeLines = [
   { text: '> vibeflow auth --login', color: 'var(--accent-teal)', delay: 0 },
@@ -13,29 +15,18 @@ const codeLines = [
   { text: '> Connection established via 256-bit TLS', color: 'var(--success)', delay: 0.8 },
 ]
 
-function usePlatform() {
-  return useMemo(() => {
-    if (typeof window === 'undefined') return 'desktop'
-    const ua = navigator.userAgent
-    if (/iphone|ipad|ipod/i.test(ua)) return 'ios'
-    if (/android/i.test(ua)) return 'android'
-    if (/macintosh|mac os x/i.test(ua)) return 'mac'
-    return 'desktop'
-  }, [])
-}
-
 export default function LoginPage() {
   const { signIn, signInWithOAuth } = useAuth()
   const navigate = useNavigate()
   const location = useLocation()
   const from = location.state?.from?.pathname || '/dashboard'
-  const platform = usePlatform()
+  const authConfigured = isSupabaseConfigured()
 
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [oauthSubmitting, setOauthSubmitting] = useState(false)
+  const [oauthProvider, setOauthProvider] = useState(null)
   const [visibleLines, setVisibleLines] = useState(0)
 
   useEffect(() => {
@@ -81,15 +72,17 @@ export default function LoginPage() {
   }
 
   const handleOAuthSignIn = async (provider) => {
+    if (!authConfigured) {
+      setError('Auth is not configured. Set Supabase environment variables.')
+      return
+    }
     setError('')
-    setOauthSubmitting(true)
+    setOauthProvider(provider)
     try {
-      await signInWithOAuth(provider, {
-        redirectTo: window.location.origin + '/dashboard',
-      })
+      await signInWithOAuth(provider)
     } catch (err) {
       setError(err.message || `Could not sign in with ${provider}.`)
-      setOauthSubmitting(false)
+      setOauthProvider(null)
     }
   }
 
@@ -148,6 +141,11 @@ export default function LoginPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form" noValidate>
+            {!authConfigured && (
+              <div className="auth-error" role="alert">
+                Auth is not configured. Set Supabase environment variables on Vercel, then redeploy.
+              </div>
+            )}
             {error && <div className="auth-error" role="alert">{error}</div>}
 
             <Input
@@ -178,25 +176,11 @@ export default function LoginPage() {
             <span>or continue with</span>
           </div>
 
-          <div className="oauth-providers">
-            {platform === 'ios' ? (
-              <button type="button" className="oauth-btn oauth-btn--apple" disabled title="Coming soon">
-                <AppleIcon size={20} />
-                <span>Sign in with Apple</span>
-                <span className="oauth-badge">Coming Soon</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="oauth-btn oauth-btn--google"
-                onClick={() => handleOAuthSignIn('google')}
-                disabled={oauthSubmitting}
-              >
-                <GoogleIcon size={20} />
-                <span>{oauthSubmitting ? 'Redirecting…' : 'Sign in with Google'}</span>
-              </button>
-            )}
-          </div>
+          <OAuthProviders
+            onOAuth={handleOAuthSignIn}
+            disabled={!authConfigured}
+            loadingProvider={oauthProvider}
+          />
 
           <p className="auth-toggle">
             Don&apos;t have an account? <Link to="/signup">Create one</Link>

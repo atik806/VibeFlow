@@ -19,7 +19,14 @@ export function getSupabase() {
     )
   }
   if (!client) {
-    client = createClient(cfg.url, cfg.anonKey)
+    client = createClient(cfg.url, cfg.anonKey, {
+      auth: {
+        autoRefreshToken: true,
+        persistSession: true,
+        detectSessionInUrl: true,
+        flowType: 'pkce',
+      },
+    })
   }
   return client
 }
