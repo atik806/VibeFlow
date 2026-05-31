@@ -116,10 +116,18 @@ export default function ClientDashboard() {
           .single(),
       ])
 
+      console.log('[Dashboard] Query results:', {
+        userId: user.id,
+        reqError: reqResult.error,
+        reqCount: reqResult.data?.length,
+        profError: profResult.error,
+      })
+
       if (reqResult.error) {
         setError('Could not load your requests.')
         console.error('[Dashboard] Failed to fetch requests:', reqResult.error)
       } else if (reqResult.data) {
+        console.log('[Dashboard] Loaded requests:', reqResult.data)
         setRequests(reqResult.data)
       }
 

@@ -32,6 +32,7 @@ CREATE POLICY "Allow admin full access on error_logs" ON error_logs
 -- Project request submissions (via api/submit-request)
 CREATE TABLE IF NOT EXISTS project_requests (
   id BIGSERIAL PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
   name TEXT NOT NULL,
   email TEXT NOT NULL,
   service TEXT NOT NULL,
@@ -42,12 +43,24 @@ CREATE TABLE IF NOT EXISTS project_requests (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 ALTER TABLE project_requests ENABLE ROW LEVEL SECURITY;
+
+-- Allow public insert (anonymous users)
 CREATE POLICY "Allow public insert" ON project_requests FOR INSERT WITH CHECK (
   char_length(name) BETWEEN 2 AND 80
   AND char_length(email) BETWEEN 5 AND 254
   AND char_length(description) BETWEEN 20 AND 2000
 );
-CREATE POLICY "Allow authenticated read" ON project_requests FOR SELECT USING (auth.role() = 'authenticated');
+
+-- Allow authenticated users to read their own requests
+DROP POLICY IF EXISTS "Allow authenticated read" ON project_requests;
+CREATE POLICY "Users can read own requests" ON project_requests FOR SELECT USING (
+  auth.uid() = user_id OR user_id IS NULL
+);
+
+-- Allow authenticated users to update their own requests (for admin)
+CREATE POLICY "Users can update own requests" ON project_requests FOR UPDATE USING (
+  auth.uid() = user_id
+);
 
 -- Constraints for data integrity
 ALTER TABLE project_requests ADD CONSTRAINT valid_budget
