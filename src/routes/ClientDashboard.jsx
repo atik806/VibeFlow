@@ -61,7 +61,7 @@ const item = {
 export default function ClientDashboard() {
   const { user } = useAuth()
   const outletCtx = useOutletContext() || {}
-  const { openRequestModal } = outletCtx
+  const { openRequestModal, refreshKey } = outletCtx
   const [requests, setRequests] = useState([])
   const [profileCreatedAt, setProfileCreatedAt] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -131,7 +131,7 @@ export default function ClientDashboard() {
     }
 
     load()
-  }, [user])
+  }, [user, refreshKey])
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'
   const userInitial = displayName.charAt(0).toUpperCase()

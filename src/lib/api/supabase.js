@@ -20,16 +20,27 @@ export async function saveRequest(formData) {
         description: formData.description || '',
         budget: formData.budget || '',
         status: 'new',
-        ...(formData.user_id ? { user_id: formData.user_id } : {}),
       }
+
+      // Add user_id if provided
+      if (formData.user_id) {
+        payload.user_id = formData.user_id
+      }
+
+      console.log('[Supabase] Inserting project_request:', payload)
       const { data, error } = await supabase
         .from('project_requests')
         .insert([payload])
         .select()
         .single()
 
-      if (!error) return data?.id
-      console.warn('[Supabase] project_requests insert failed, falling back to requests:', error.message)
+      if (!error) {
+        console.log('[Supabase] project_request inserted successfully:', data?.id)
+        return data?.id
+      }
+
+      console.warn('[Supabase] project_requests insert failed:', error.message, error.details)
+      console.warn('[Supabase] Falling back to requests table')
     }
   } catch (e) {
     console.warn('[Supabase] project_requests insert exception:', e?.message || e)
@@ -61,6 +72,7 @@ export async function saveRequest(formData) {
       return null
     }
 
+    console.log('[Supabase] request inserted to fallback table:', data?.id)
     return data?.id || data?.insertedId
   } catch (e) {
     console.error('[Supabase] Exception:', e?.message || e)

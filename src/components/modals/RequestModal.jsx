@@ -21,12 +21,17 @@ export function RequestModal({ isOpen, onClose, onSubmitted }) {
 
   const handleSubmit = async (values) => {
     try {
+      console.log('[RequestModal] Submitting request:', values)
       await submitRequest(values)
       setSubmittedName(values.name)
       setSubmitted(true)
       toast.success('Request submitted', "We'll reach out within 24 hours.")
-      onSubmitted?.()
+      // Trigger refresh after a short delay to allow database to sync
+      setTimeout(() => {
+        onSubmitted?.()
+      }, 500)
     } catch (err) {
+      console.error('[RequestModal] Submit error:', err)
       toast.error('Failed to submit', err.message)
     }
   }
