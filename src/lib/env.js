@@ -7,6 +7,10 @@ function readViteEnv(key) {
   return emptyToUndefined(import.meta.env[key])
 }
 
+/** Last-resort defaults when Vercel env vars are missing from a deploy (publishable key is public). */
+const DEFAULT_SUPABASE_URL = 'https://qbadqyfwkjdcnxexboyz.supabase.co'
+const DEFAULT_SUPABASE_KEY = 'sb_publishable_IbvJ3pgGoySNekzxPxpgtQ_DeS_5ybT'
+
 const envSchema = z.object({
   VITE_APP_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
   VITE_CONTACT_EMAIL: z.string().email().default('hello@vibeflow.app'),
@@ -39,7 +43,8 @@ export function getSupabaseAnonKey() {
     readViteEnv('VITE_SUPABASE_ANON_KEY') ||
     readViteEnv('VITE_SUPABASE_PUBLISHABLE_KEY') ||
     env.VITE_SUPABASE_ANON_KEY ||
-    env.VITE_SUPABASE_PUBLISHABLE_KEY
+    env.VITE_SUPABASE_PUBLISHABLE_KEY ||
+    (import.meta.env.PROD ? DEFAULT_SUPABASE_KEY : undefined)
   )
 }
 
@@ -48,7 +53,10 @@ export function getSupabaseAnonKey() {
  * Returns null if Supabase is not configured (app still runs).
  */
 export function getSupabaseBrowserConfig() {
-  const url = readViteEnv('VITE_SUPABASE_URL') || env.VITE_SUPABASE_URL
+  const url =
+    readViteEnv('VITE_SUPABASE_URL') ||
+    env.VITE_SUPABASE_URL ||
+    (import.meta.env.PROD ? DEFAULT_SUPABASE_URL : undefined)
   const anonKey = getSupabaseAnonKey()
   if (!url || !anonKey) {
     if (import.meta.env.DEV && (url || anonKey)) {
