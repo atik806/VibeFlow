@@ -1,9 +1,8 @@
-import { GoogleIcon, AppleIcon } from '../../icons'
+import { GoogleIcon } from '../../icons'
 
 export function OAuthProviders({ onOAuth, disabled = false, loadingProvider = null }) {
   const providers = [
     { id: 'google', label: 'Google', Icon: GoogleIcon, className: 'oauth-btn--google' },
-    { id: 'apple', label: 'Apple', Icon: AppleIcon, className: 'oauth-btn--apple' },
   ]
 
   return (
