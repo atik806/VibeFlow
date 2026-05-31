@@ -1,5 +1,5 @@
 -- Create requests table in Supabase
-CREATE TABLE requests (
+CREATE TABLE IF NOT EXISTS requests (
   id BIGSERIAL PRIMARY KEY,
   prompt TEXT NOT NULL,
   image_data TEXT,
@@ -11,6 +11,7 @@ CREATE TABLE requests (
 ALTER TABLE requests ENABLE ROW LEVEL SECURITY;
 
 -- Allow public read/write (adjust based on your needs)
+DROP POLICY IF EXISTS "Allow public access" ON requests;
 CREATE POLICY "Allow public access" ON requests FOR ALL USING (true);
 
 -- Error logs table for automatic error tracking
