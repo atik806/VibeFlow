@@ -28,6 +28,7 @@ const NotFoundPage = lazy(() => import('./routes/NotFoundPage'))
 
 const LoginPage = lazy(() => import('./routes/LoginPage'))
 const SignUpPage = lazy(() => import('./routes/SignUpPage'))
+const AuthCallback = lazy(() => import('./routes/AuthCallback'))
 const ClientDashboard = lazy(() => import('./routes/ClientDashboard'))
 
 const AdminLogin = lazy(() => import('./routes/AdminLogin'))
@@ -71,6 +72,7 @@ export default function App() {
 
                   <Route path="login" element={<LoginPage />} />
                   <Route path="signup" element={<SignUpPage />} />
+                  <Route path="auth/callback" element={<AuthCallback />} />
 
                   <Route element={<UserGuard />}>
                     <Route path="dashboard" element={<ClientDashboard />} />
