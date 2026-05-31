@@ -42,3 +42,4 @@ __pycache__/
 
 # Local test scripts (may contain real credentials)
 check_supabase.mjs
+.vercel

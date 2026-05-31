@@ -1,6 +1,11 @@
 import { z } from 'zod'
 
-const emptyToUndefined = (val) => (val === '' ? undefined : val)
+const emptyToUndefined = (val) =>
+  val === '' || val === null || val === undefined ? undefined : val
+
+function readViteEnv(key) {
+  return emptyToUndefined(import.meta.env[key])
+}
 
 const envSchema = z.object({
   VITE_APP_URL: z.preprocess(emptyToUndefined, z.string().url().optional()),
@@ -30,7 +35,12 @@ export const env = parsed.success
 
 /** Public anon / publishable key for @supabase/supabase-js (second argument to createClient). */
 export function getSupabaseAnonKey() {
-  return env.VITE_SUPABASE_ANON_KEY || env.VITE_SUPABASE_PUBLISHABLE_KEY
+  return (
+    readViteEnv('VITE_SUPABASE_ANON_KEY') ||
+    readViteEnv('VITE_SUPABASE_PUBLISHABLE_KEY') ||
+    env.VITE_SUPABASE_ANON_KEY ||
+    env.VITE_SUPABASE_PUBLISHABLE_KEY
+  )
 }
 
 /**
@@ -38,7 +48,7 @@ export function getSupabaseAnonKey() {
  * Returns null if Supabase is not configured (app still runs).
  */
 export function getSupabaseBrowserConfig() {
-  const url = env.VITE_SUPABASE_URL
+  const url = readViteEnv('VITE_SUPABASE_URL') || env.VITE_SUPABASE_URL
   const anonKey = getSupabaseAnonKey()
   if (!url || !anonKey) {
     if (import.meta.env.DEV && (url || anonKey)) {

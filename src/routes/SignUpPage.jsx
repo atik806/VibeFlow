@@ -1,11 +1,13 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../hooks/useAuth'
 import { Input } from '../components/ui/Field'
 import { Button } from '../components/ui/Button'
+import { OAuthProviders } from '../components/auth/OAuthProviders'
+import { isSupabaseConfigured } from '../lib/supabaseClient'
 import { useSEO } from '../hooks/useSEO'
-import { Mail, Shield, Zap, Terminal as TerminalIcon, CheckCircle2, GoogleIcon, AppleIcon } from '../icons'
+import { Mail, Shield, Zap, Terminal as TerminalIcon, CheckCircle2 } from '../icons'
 
 const codeLines = [
   { text: '> vibeflow auth --register', color: 'var(--accent-teal)', delay: 0 },
@@ -13,21 +15,10 @@ const codeLines = [
   { text: '> Profile scaffold ready', color: 'var(--success)', delay: 0.8 },
 ]
 
-function usePlatform() {
-  return useMemo(() => {
-    if (typeof window === 'undefined') return 'desktop'
-    const ua = navigator.userAgent
-    if (/iphone|ipad|ipod/i.test(ua)) return 'ios'
-    if (/android/i.test(ua)) return 'android'
-    if (/macintosh|mac os x/i.test(ua)) return 'mac'
-    return 'desktop'
-  }, [])
-}
-
 export default function SignUpPage() {
   const { signUp, signInWithOAuth } = useAuth()
   const navigate = useNavigate()
-  const platform = usePlatform()
+  const authConfigured = isSupabaseConfigured()
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -35,7 +26,7 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [oauthSubmitting, setOauthSubmitting] = useState(false)
+  const [oauthProvider, setOauthProvider] = useState(null)
   const [confirmationSent, setConfirmationSent] = useState(false)
   const [visibleLines, setVisibleLines] = useState(0)
 
@@ -49,15 +40,17 @@ export default function SignUpPage() {
   useSEO({ title: 'Create an Account' })
 
   const handleOAuthSignUp = async (provider) => {
+    if (!authConfigured) {
+      setError('Auth is not configured. Set Supabase environment variables.')
+      return
+    }
     setError('')
-    setOauthSubmitting(true)
+    setOauthProvider(provider)
     try {
-      await signInWithOAuth(provider, {
-        redirectTo: window.location.origin + '/dashboard',
-      })
+      await signInWithOAuth(provider)
     } catch (err) {
       setError(err.message || `Could not sign up with ${provider}.`)
-      setOauthSubmitting(false)
+      setOauthProvider(null)
     }
   }
 
@@ -177,6 +170,11 @@ export default function SignUpPage() {
           </div>
 
           <form onSubmit={handleSubmit} className="auth-form" noValidate>
+            {!authConfigured && (
+              <div className="auth-error" role="alert">
+                Auth is not configured. Set Supabase environment variables on Vercel, then redeploy.
+              </div>
+            )}
             {error && <div className="auth-error" role="alert">{error}</div>}
 
             <Input
@@ -231,25 +229,11 @@ export default function SignUpPage() {
             <span>or continue with</span>
           </div>
 
-          <div className="oauth-providers">
-            {platform === 'ios' ? (
-              <button type="button" className="oauth-btn oauth-btn--apple" disabled title="Coming soon">
-                <AppleIcon size={20} />
-                <span>Sign up with Apple</span>
-                <span className="oauth-badge">Coming Soon</span>
-              </button>
-            ) : (
-              <button
-                type="button"
-                className="oauth-btn oauth-btn--google"
-                onClick={() => handleOAuthSignUp('google')}
-                disabled={oauthSubmitting}
-              >
-                <GoogleIcon size={20} />
-                <span>{oauthSubmitting ? 'Redirecting…' : 'Sign up with Google'}</span>
-              </button>
-            )}
-          </div>
+          <OAuthProviders
+            onOAuth={handleOAuthSignUp}
+            disabled={!authConfigured}
+            loadingProvider={oauthProvider}
+          />
 
           <p className="auth-toggle">
             Already have an account? <Link to="/login">Sign in</Link>
