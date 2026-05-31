@@ -71,6 +71,15 @@ export function AuthProvider({ children }) {
     return data
   }, [])
 
+  const signInWithOAuth = useCallback(async (provider, options) => {
+    if (!isSupabaseConfigured()) {
+      throw new Error('Auth is not configured. Set Supabase environment variables.')
+    }
+    const supabase = getSupabase()
+    const { error } = await supabase.auth.signInWithOAuth({ provider, options })
+    if (error) throw error
+  }, [])
+
   const signOut = useCallback(async () => {
     if (!isSupabaseConfigured()) return
     const supabase = getSupabase()
@@ -79,7 +88,7 @@ export function AuthProvider({ children }) {
   }, [])
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signIn, signUp, signInWithOAuth, signOut }}>
       {children}
     </AuthContext.Provider>
   )

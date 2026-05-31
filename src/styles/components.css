@@ -825,6 +825,79 @@ textarea.field-control {
   font-family: var(--font-mono);
 }
 
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 20px 0 16px;
+  color: var(--text-muted);
+  font-size: 11px;
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: var(--border-subtle);
+}
+
+.oauth-providers {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.oauth-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 10px 16px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9px;
+  background: var(--card-bg);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.oauth-btn:hover:not(:disabled) {
+  background: var(--bg-secondary);
+  border-color: var(--text-muted);
+}
+
+.oauth-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.oauth-btn--google {
+  color: #e8eaed;
+}
+
+.oauth-btn--apple {
+  color: #e8eaed;
+}
+
+.oauth-badge {
+  font-size: 9px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 7px;
+  border-radius: 4px;
+  background: rgba(146, 176, 200, 0.1);
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
 .auth-toggle {
   text-align: center;
   margin-top: 20px;
@@ -1403,6 +1476,8 @@ textarea.field-control {
   .auth-card-header h2 { font-size: 17px; }
   .auth-form .field-control { padding: 10px 12px; font-size: 13px; }
   .auth-toggle { font-size: 13px; margin-top: 14px; }
+  .oauth-btn { font-size: 12px; padding: 8px 14px; }
+  .oauth-badge { font-size: 8px; }
   .password-requirements .req { font-size: 10px; padding: 2px 6px; }
   .dashboard-page .page-hero h1 { font-size: 18px; }
   .dashboard-hero { gap: 10px; }
@@ -1441,6 +1516,8 @@ textarea.field-control {
   .auth-page-content { padding-top: 16px; padding-bottom: 32px; }
   .auth-card { padding: 20px 14px; }
   .auth-card-header h2 { font-size: 16px; }
+  .oauth-btn { font-size: 11px; padding: 8px 12px; gap: 8px; }
+  .oauth-btn svg { width: 16px; height: 16px; }
   .auth-card-icon { width: 34px; height: 34px; }
   .auth-terminal-header { padding: 10px 14px 8px; }
   .auth-terminal-dots { gap: 6px; margin-bottom: 10px; }

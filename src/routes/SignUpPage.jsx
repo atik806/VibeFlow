@@ -1,11 +1,11 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useAuth } from '../hooks/useAuth'
 import { Input } from '../components/ui/Field'
 import { Button } from '../components/ui/Button'
 import { useSEO } from '../hooks/useSEO'
-import { Mail, Shield, Zap, Terminal as TerminalIcon, CheckCircle2 } from '../icons'
+import { Mail, Shield, Zap, Terminal as TerminalIcon, CheckCircle2, GoogleIcon, AppleIcon } from '../icons'
 
 const codeLines = [
   { text: '> vibeflow auth --register', color: 'var(--accent-teal)', delay: 0 },
@@ -13,9 +13,21 @@ const codeLines = [
   { text: '> Profile scaffold ready', color: 'var(--success)', delay: 0.8 },
 ]
 
+function usePlatform() {
+  return useMemo(() => {
+    if (typeof window === 'undefined') return 'desktop'
+    const ua = navigator.userAgent
+    if (/iphone|ipad|ipod/i.test(ua)) return 'ios'
+    if (/android/i.test(ua)) return 'android'
+    if (/macintosh|mac os x/i.test(ua)) return 'mac'
+    return 'desktop'
+  }, [])
+}
+
 export default function SignUpPage() {
-  const { signUp } = useAuth()
+  const { signUp, signInWithOAuth } = useAuth()
   const navigate = useNavigate()
+  const platform = usePlatform()
 
   const [fullName, setFullName] = useState('')
   const [email, setEmail] = useState('')
@@ -23,6 +35,7 @@ export default function SignUpPage() {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
   const [submitting, setSubmitting] = useState(false)
+  const [oauthSubmitting, setOauthSubmitting] = useState(false)
   const [confirmationSent, setConfirmationSent] = useState(false)
   const [visibleLines, setVisibleLines] = useState(0)
 
@@ -34,6 +47,19 @@ export default function SignUpPage() {
   }, [])
 
   useSEO({ title: 'Create an Account' })
+
+  const handleOAuthSignUp = async (provider) => {
+    setError('')
+    setOauthSubmitting(true)
+    try {
+      await signInWithOAuth(provider, {
+        redirectTo: window.location.origin + '/dashboard',
+      })
+    } catch (err) {
+      setError(err.message || `Could not sign up with ${provider}.`)
+      setOauthSubmitting(false)
+    }
+  }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
@@ -200,6 +226,30 @@ export default function SignUpPage() {
               {submitting ? 'Creating account…' : 'Create Account →'}
             </Button>
           </form>
+
+          <div className="auth-divider">
+            <span>or continue with</span>
+          </div>
+
+          <div className="oauth-providers">
+            {platform === 'ios' ? (
+              <button type="button" className="oauth-btn oauth-btn--apple" disabled title="Coming soon">
+                <AppleIcon size={20} />
+                <span>Sign up with Apple</span>
+                <span className="oauth-badge">Coming Soon</span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                className="oauth-btn oauth-btn--google"
+                onClick={() => handleOAuthSignUp('google')}
+                disabled={oauthSubmitting}
+              >
+                <GoogleIcon size={20} />
+                <span>{oauthSubmitting ? 'Redirecting…' : 'Sign up with Google'}</span>
+              </button>
+            )}
+          </div>
 
           <p className="auth-toggle">
             Already have an account? <Link to="/login">Sign in</Link>
