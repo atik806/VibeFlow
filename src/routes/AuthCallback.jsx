@@ -1,4 +1,4 @@
-  import { useEffect } from 'react'
+import { useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getSupabase } from '../lib/supabaseClient'
 import { Spinner } from '../components/ui/Spinner'
@@ -29,9 +29,13 @@ export default function AuthCallback() {
     async function handleCallback() {
       try {
         console.log('[AuthCallback] Starting callback handler')
+        console.log('[AuthCallback] Full URL:', window.location.href)
+        console.log('[AuthCallback] Search:', window.location.search)
+        console.log('[AuthCallback] Hash:', window.location.hash)
+        
         const params = new URLSearchParams(window.location.search)
         const code = params.get('code')
-        console.log('[AuthCallback] Code from URL:', !!code)
+        console.log('[AuthCallback] Code from URL:', !!code, code?.substring(0, 20))
 
         if (code) {
           if (exchangedCodes.has(code)) {
@@ -105,8 +109,14 @@ export default function AuthCallback() {
   }, [navigate])
 
   return (
-    <div style={{ minHeight: '60vh', display: 'grid', placeItems: 'center' }}>
+    <div style={{ minHeight: '60vh', display: 'grid', placeItems: 'center', flexDirection: 'column', gap: '20px' }}>
       <Spinner size="lg" />
+      <div style={{ textAlign: 'center', fontSize: '12px', color: '#999', maxWidth: '400px' }}>
+        <p>Processing authentication...</p>
+        <p style={{ fontSize: '10px', wordBreak: 'break-all', marginTop: '10px' }}>
+          URL: {window.location.href}
+        </p>
+      </div>
     </div>
   )
 }
