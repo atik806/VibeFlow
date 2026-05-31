@@ -80,7 +80,7 @@ export function AuthProvider({ children }) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
-        redirectTo: `${getAppOrigin()}/dashboard`,
+        redirectTo: `${getAppOrigin()}/auth/callback`,
       },
     })
     if (error) throw error
