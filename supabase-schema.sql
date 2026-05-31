@@ -12,7 +12,7 @@ ALTER TABLE requests ENABLE ROW LEVEL SECURITY;
 
 -- Allow public read/write (adjust based on your needs)
 DROP POLICY IF EXISTS "Allow public access" ON requests;
-CREATE POLICY "Allow public access" ON requests FOR ALL USING (true);
+CREATE POLICY IF NOT EXISTS "Allow public access" ON requests FOR ALL USING (true);
 
 -- Error logs table for automatic error tracking
 CREATE TABLE IF NOT EXISTS error_logs (
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS error_logs (
 );
 
 ALTER TABLE error_logs ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Allow admin full access on error_logs" ON error_logs
+CREATE POLICY IF NOT EXISTS "Allow admin full access on error_logs" ON error_logs
   FOR ALL USING (true);
 
 -- Project request submissions (via api/submit-request)
@@ -46,7 +46,7 @@ CREATE TABLE IF NOT EXISTS project_requests (
 ALTER TABLE project_requests ENABLE ROW LEVEL SECURITY;
 
 -- Allow public insert (anonymous users)
-CREATE POLICY "Allow public insert" ON project_requests FOR INSERT WITH CHECK (
+CREATE POLICY IF NOT EXISTS "Allow public insert" ON project_requests FOR INSERT WITH CHECK (
   char_length(name) BETWEEN 2 AND 80
   AND char_length(email) BETWEEN 5 AND 254
   AND char_length(description) BETWEEN 20 AND 2000
@@ -59,13 +59,13 @@ CREATE POLICY "Users can read own requests" ON project_requests FOR SELECT USING
 );
 
 -- Allow authenticated users to update their own requests (for admin)
-CREATE POLICY "Users can update own requests" ON project_requests FOR UPDATE USING (
+CREATE POLICY IF NOT EXISTS "Users can update own requests" ON project_requests FOR UPDATE USING (
   auth.uid() = user_id
 );
 
 -- Constraints for data integrity
 ALTER TABLE project_requests ADD CONSTRAINT valid_budget
-  CHECK (budget IN ('under-500','500-1000','1000-2500','2500-5000','5000+'));
+  CHECK (budget IN ('under-10000','10000-25000','25000-50000','50000-100000','100000-plus'));
 ALTER TABLE project_requests ADD CONSTRAINT valid_status
   CHECK (status IN ('new','contacted','in-progress','completed','cancelled'));
 ALTER TABLE project_requests ADD CONSTRAINT name_length
@@ -92,13 +92,13 @@ CREATE TABLE IF NOT EXISTS visitor_sessions (
 
 ALTER TABLE visitor_sessions ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Visitors can insert their own session" ON visitor_sessions
+CREATE POLICY IF NOT EXISTS "Visitors can insert their own session" ON visitor_sessions
   FOR INSERT WITH CHECK (true);
 
-CREATE POLICY "Visitors can update their own session" ON visitor_sessions
+CREATE POLICY IF NOT EXISTS "Visitors can update their own session" ON visitor_sessions
   FOR UPDATE USING (true);
 
-CREATE POLICY "Only service role can read" ON visitor_sessions
+CREATE POLICY IF NOT EXISTS "Only service role can read" ON visitor_sessions
   FOR SELECT USING (auth.role() = 'service_role');
 
 CREATE INDEX idx_visitors_active ON visitor_sessions (last_active_at);

@@ -10,25 +10,37 @@ export function AuthProvider({ children }) {
 
   useEffect(() => {
     if (!isSupabaseConfigured()) {
-      queueMicrotask(() => setLoading(false))
+      setLoading(false)
       return
     }
 
     const supabase = getSupabase()
+    let cancelled = false
 
     supabase.auth.getSession().then(({ data: { session: s } }) => {
+      if (cancelled) return
       setSession(s)
       setUser(s?.user ?? null)
       setLoading(false)
     })
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s)
-      setUser(s?.user ?? null)
-      setLoading(false)
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, s) => {
+      if (cancelled) return
+      // Only process SIGNED_IN — needed for OAuth callback completion.
+      // SIGNED_OUT is handled explicitly in signOut().
+      // INITIAL_SESSION is handled by getSession().
+      // TOKEN_REFRESHED / USER_UPDATED don't affect auth state.
+      if (event === 'SIGNED_IN') {
+        setSession(s)
+        setUser(s?.user ?? null)
+        setLoading(false)
+      }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      cancelled = true
+      subscription.unsubscribe()
+    }
   }, [])
 
   const signIn = useCallback(async (email, password) => {
@@ -36,8 +48,13 @@ export function AuthProvider({ children }) {
       throw new Error('Auth is not configured. Set Supabase environment variables.')
     }
     const supabase = getSupabase()
-    const { error } = await supabase.auth.signInWithPassword({ email, password })
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password })
     if (error) throw error
+    if (data?.session) {
+      setSession(data.session)
+      setUser(data.session.user)
+    }
+    return data
   }, [])
 
   const signUp = useCallback(async (email, password, fullName) => {
@@ -52,21 +69,20 @@ export function AuthProvider({ children }) {
     })
     if (error) throw error
 
-    // Create profile row client-side (only source — no DB trigger)
     if (data?.user) {
-      // Retry with backoff in case of replication lag
       for (let attempt = 0; attempt < 3; attempt++) {
         const { error: pe } = await supabase
           .from('profiles')
           .upsert({ id: data.user.id, email, full_name: fullName }, { ignoreDuplicates: true })
         if (!pe) break
-        if (pe.code === '42P01') {
-          console.warn('[Auth] profiles table not found — skipping profile insert')
-          break
-        }
+        if (pe.code === '42P01') break
         if (attempt < 2) await new Promise((r) => setTimeout(r, 500 * (attempt + 1)))
-        else console.warn('[Auth] Profile upsert failed after 3 attempts:', pe.message)
       }
+    }
+
+    if (data?.session) {
+      setSession(data.session)
+      setUser(data.session.user)
     }
 
     return data
@@ -86,48 +102,24 @@ export function AuthProvider({ children }) {
     if (error) throw error
   }, [])
 
-  // Create profile after OAuth sign-in (called from AuthCallback)
   const ensureProfileExists = useCallback(async (user) => {
     if (!user || !isSupabaseConfigured()) return
     const supabase = getSupabase()
-
     try {
-      // Check if profile exists
-      const { data: existing, error: checkError } = await supabase
+      const { data: existing } = await supabase
         .from('profiles')
         .select('id')
         .eq('id', user.id)
         .single()
-
-      if (existing) {
-        console.log('[Auth] Profile already exists')
-        return
-      }
-
-      // Profile doesn't exist, create it
+      if (existing) return
       const email = user.email || ''
       const fullName = user.user_metadata?.full_name || email.split('@')[0] || 'User'
-
-      console.log('[Auth] Creating profile for user:', user.id)
       const { error: insertError } = await supabase
         .from('profiles')
         .insert({ id: user.id, email, full_name: fullName })
-
-      if (insertError) {
-        // 23505 = unique violation (already exists, race condition)
-        if (insertError.code === '23505') {
-          console.log('[Auth] Profile already exists (race condition)')
-          return
-        }
-        console.error('[Auth] Failed to create profile:', insertError.message)
-        throw insertError
-      }
-
-      console.log('[Auth] Profile created successfully')
+      if (insertError && insertError.code !== '23505') throw insertError
     } catch (err) {
       console.error('[Auth] ensureProfileExists error:', err)
-      // Don't throw - allow sign-in to proceed even if profile creation fails
-      // The dashboard will handle missing profiles gracefully
     }
   }, [])
 
@@ -135,6 +127,10 @@ export function AuthProvider({ children }) {
     if (!isSupabaseConfigured()) return
     const supabase = getSupabase()
     const { error } = await supabase.auth.signOut()
+    if (!error) {
+      setSession(null)
+      setUser(null)
+    }
     if (error) throw error
   }, [])
 

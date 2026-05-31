@@ -107,13 +107,25 @@ const _handler = async function handler(req, res) {
         }])
         .select()
         .single()
-      if (!error && inserted) {
+      if (error) {
+        logger.error('Supabase insert error', { message: error.message, details: error.details, code: error.code })
+        captureError(error, { route: '/api/submit-request', service: data.service })
+        return sendJson(res, 500, {
+          code: 'INSERT_FAILED',
+          message: 'Could not save your request. The database constraint rejected the data.',
+        })
+      }
+      if (inserted) {
         recordId = inserted.id
         logger.info('Request submitted', { id: recordId, service: data.service })
       }
     } catch (err) {
       captureError(err, { route: '/api/submit-request', service: data.service })
       logger.error('Supabase insert error', { message: err.message })
+      return sendJson(res, 500, {
+        code: 'INTERNAL_ERROR',
+        message: 'Server error while saving your request.',
+      })
     }
   }
 

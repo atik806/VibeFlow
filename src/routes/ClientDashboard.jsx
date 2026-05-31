@@ -39,6 +39,7 @@ const BUDGET_LABELS = {
 
 const STATUS_LABELS = {
   'new': 'Pending',
+  'pending': 'Pending',
   'contacted': 'Contacted',
   'in-progress': 'In Progress',
   'completed': 'Completed',
@@ -71,14 +72,16 @@ export default function ClientDashboard() {
 
   useEffect(() => {
     if (!user) return
+    let cancelled = false
 
     const load = async () => {
       if (!isSupabaseConfigured()) {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
         return
       }
 
       const supabase = getSupabase()
+      const errs = []
 
       // Ensure profile exists for OAuth users
       try {
@@ -89,7 +92,6 @@ export default function ClientDashboard() {
           .single()
 
         if (!existing) {
-          // Profile doesn't exist, create it
           const email = user.email || ''
           const fullName = user.user_metadata?.full_name || email.split('@')[0] || 'User'
           await supabase
@@ -99,15 +101,34 @@ export default function ClientDashboard() {
         }
       } catch (err) {
         console.warn('[Dashboard] Profile check/create failed:', err.message)
-        // Continue anyway - profile might exist or user might not have permission
       }
 
-      const [reqResult, profResult] = await Promise.all([
+      const reqByIdPromise = supabase
+        .from('project_requests')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(50)
+
+      // Case-insensitive email match — escape LIKE wildcards to prevent
+      // false positives from _ or % in email addresses.
+      const reqByEmailPromise = user.email
+        ? supabase
+            .from('project_requests')
+            .select('*')
+            .ilike('email', user.email.replace(/[%_]/g, '\\$&'))
+            .order('created_at', { ascending: false })
+            .limit(50)
+        : Promise.resolve({ data: null, error: null })
+
+      const [reqById, reqByEmail, legacyReqs, profResult] = await Promise.all([
+        reqByIdPromise,
+        reqByEmailPromise,
         supabase
-          .from('project_requests')
+          .from('requests')
           .select('*')
           .order('created_at', { ascending: false })
-          .limit(20),
+          .limit(50),
         supabase
           .from('profiles')
           .select('created_at')
@@ -115,33 +136,78 @@ export default function ClientDashboard() {
           .single(),
       ])
 
-      console.log('[Dashboard] Query results:', {
-        userId: user.id,
-        reqError: reqResult.error,
-        reqCount: reqResult.data?.length,
-        profError: profResult.error,
-      })
+      if (reqById.error) {
+        console.error('[Dashboard] Failed to fetch by user_id:', reqById.error)
+        errs.push('user_id query')
+      }
+      if (legacyReqs.error) {
+        console.error('[Dashboard] Failed to fetch legacy requests:', legacyReqs.error)
+      }
+      if (reqByEmail && reqByEmail.error) {
+        console.error('[Dashboard] Failed to fetch by email:', reqByEmail.error)
+        errs.push('email query')
+      }
 
-      if (reqResult.error) {
-        setError('Could not load your requests.')
-        console.error('[Dashboard] Failed to fetch requests:', reqResult.error)
-      } else if (reqResult.data) {
-        // Filter requests by user_id or email on client side as fallback
-        const userRequests = reqResult.data.filter(
-          (r) => r.user_id === user.id || r.email === user.email
-        )
-        console.log('[Dashboard] Loaded requests:', userRequests)
+      // Merge project_requests by id, deduplicate
+      const seen = new Set()
+      const userRequests = []
+
+      for (const r of [...(reqById.data || []), ...(reqByEmail.data || [])]) {
+        if (seen.has(r.id)) continue
+        seen.add(r.id)
+        userRequests.push(r)
+      }
+
+      // Legacy requests table fallback (prompt column stores JSON with email).
+      // The requests table uses a *different* auto-increment sequence from
+      // project_requests, so numeric ids can collide — use a prefixed id.
+      const userEmail = user.email?.toLowerCase().trim()
+      if (userEmail) {
+        for (const r of legacyReqs.data || []) {
+          let parsed
+          try {
+            parsed = typeof r.prompt === 'string' ? JSON.parse(r.prompt) : r.prompt
+          } catch {
+            parsed = {}
+          }
+          const entryEmail = (parsed.email || '').toLowerCase().trim()
+          if (entryEmail !== userEmail) continue
+          const legacyId = `legacy-${r.id}`
+          if (seen.has(legacyId)) continue
+          seen.add(legacyId)
+          userRequests.push({
+            id: legacyId,
+            user_id: parsed.user_id || user.id,
+            email: parsed.email || user.email,
+            service: parsed.service || '',
+            subcategory: parsed.subcategory || '',
+            description: parsed.description || '',
+            budget: parsed.budget || '',
+            status: r.status === 'pending' ? 'new' : r.status,
+            created_at: r.created_at,
+          })
+        }
+      }
+
+      userRequests.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+
+      if (!cancelled) {
+        console.log('[Dashboard] Loaded requests:', userRequests.length, userRequests)
+
+        setError(errs.length > 0 ? `Could not fetch from: ${errs.join(', ')}` : '')
         setRequests(userRequests)
-      }
 
-      if (!profResult.error && profResult.data?.created_at) {
-        setProfileCreatedAt(profResult.data.created_at)
-      }
+        if (!profResult.error && profResult.data?.created_at) {
+          setProfileCreatedAt(profResult.data.created_at)
+        }
 
-      setLoading(false)
+        setLoading(false)
+      }
     }
 
     load()
+
+    return () => { cancelled = true }
   }, [user, refreshKey])
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'
@@ -151,7 +217,7 @@ export default function ClientDashboard() {
     const total = requests.length
     const active = requests.filter((r) => r.status === 'contacted' || r.status === 'in-progress').length
     const completed = requests.filter((r) => r.status === 'completed').length
-    const pending = requests.filter((r) => r.status === 'new').length
+    const pending = requests.filter((r) => r.status === 'new' || r.status === 'pending').length
 
     const serviceCounts = {}
     let budgetTotal = 0
@@ -322,6 +388,9 @@ export default function ClientDashboard() {
           {error ? (
             <div className="dashboard-empty">
               <p style={{ color: 'var(--danger)', fontSize: 13 }}>{error}</p>
+              <button type="button" className="btn btn-primary" style={{ marginTop: 8 }} onClick={() => window.location.reload()}>
+                Retry
+              </button>
             </div>
           ) : recentRequests.length === 0 ? (
             <motion.div
@@ -355,7 +424,7 @@ export default function ClientDashboard() {
                         })}
                       </span>
                     </div>
-                    <div className="request-service">{r.service}</div>
+                    <div className="request-service">{r.service || 'General inquiry'}</div>
                     {r.description && <div className="request-desc">{r.description}</div>}
                   </div>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: 8 }}>
