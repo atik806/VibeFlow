@@ -25,46 +25,51 @@ export default function AuthCallback() {
     })
 
     async function handleCallback() {
-      const params = new URLSearchParams(window.location.search)
-      const code = params.get('code')
+      try {
+        const params = new URLSearchParams(window.location.search)
+        const code = params.get('code')
 
-      if (code) {
-        if (exchangedCodes.has(code)) return
-        exchangedCodes.add(code)
-        const { data, error } = await supabase.auth.exchangeCodeForSession(code)
-        if (error) throw error
-        if (data?.session?.user) {
-          // Wait a tick to ensure onAuthStateChange fires
-          await new Promise((r) => setTimeout(r, 0))
-          redirect('/dashboard')
-        }
-        return
-      }
-
-      const hash = window.location.hash
-      if (hash && hash.includes('access_token=')) {
-        const p = new URLSearchParams(hash.slice(1))
-        const session = {
-          access_token: p.get('access_token'),
-          refresh_token: p.get('refresh_token'),
-        }
-        if (session.access_token) {
-          const { data, error } = await supabase.auth.setSession(session)
+        if (code) {
+          if (exchangedCodes.has(code)) return
+          exchangedCodes.add(code)
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code)
           if (error) throw error
           if (data?.session?.user) {
             // Wait a tick to ensure onAuthStateChange fires
-            await new Promise((r) => setTimeout(r, 0))
+            await new Promise((r) => setTimeout(r, 100))
             redirect('/dashboard')
           }
           return
         }
-      }
 
-      const existing = await supabase.auth.getSession()
-      if (existing.data?.session?.user) {
-        redirect('/dashboard')
-      } else {
-        redirect('/login')
+        const hash = window.location.hash
+        if (hash && hash.includes('access_token=')) {
+          const p = new URLSearchParams(hash.slice(1))
+          const session = {
+            access_token: p.get('access_token'),
+            refresh_token: p.get('refresh_token'),
+          }
+          if (session.access_token) {
+            const { data, error } = await supabase.auth.setSession(session)
+            if (error) throw error
+            if (data?.session?.user) {
+              // Wait a tick to ensure onAuthStateChange fires
+              await new Promise((r) => setTimeout(r, 100))
+              redirect('/dashboard')
+            }
+            return
+          }
+        }
+
+        const existing = await supabase.auth.getSession()
+        if (existing.data?.session?.user) {
+          redirect('/dashboard')
+        } else {
+          redirect('/login')
+        }
+      } catch (err) {
+        console.error('[AuthCallback] Error in handleCallback:', err)
+        throw err
       }
     }
 
