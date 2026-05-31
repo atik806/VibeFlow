@@ -106,7 +106,6 @@ export default function ClientDashboard() {
         supabase
           .from('project_requests')
           .select('*')
-          .eq('user_id', user.id)
           .order('created_at', { ascending: false })
           .limit(20),
         supabase
@@ -127,8 +126,12 @@ export default function ClientDashboard() {
         setError('Could not load your requests.')
         console.error('[Dashboard] Failed to fetch requests:', reqResult.error)
       } else if (reqResult.data) {
-        console.log('[Dashboard] Loaded requests:', reqResult.data)
-        setRequests(reqResult.data)
+        // Filter requests by user_id or email on client side as fallback
+        const userRequests = reqResult.data.filter(
+          (r) => r.user_id === user.id || r.email === user.email
+        )
+        console.log('[Dashboard] Loaded requests:', userRequests)
+        setRequests(userRequests)
       }
 
       if (!profResult.error && profResult.data?.created_at) {
