@@ -1,11 +1,13 @@
 import { useEffect } from 'react'
 import { env } from '../lib/env'
 
+const BASE_URL = env.VITE_APP_URL || 'https://vibeflow.app'
+
 const DEFAULTS = {
   title: `${env.VITE_BRAND} — Premium On-Demand Service`,
   description:
     "Submit your request. Our expert team handles design, development, writing, AI and more. No hiring hassle, just results.",
-  image: '/og-image.png',
+  image: `${BASE_URL}/og-image.png`,
 }
 
 function upsertMeta(selector, attrs) {
@@ -23,7 +25,11 @@ export function useSEO({ title, description, image, noIndex } = {}) {
   useEffect(() => {
     const resolvedTitle = title ? `${title} · ${env.VITE_BRAND}` : DEFAULTS.title
     const resolvedDesc = description || DEFAULTS.description
-    const resolvedImage = image || DEFAULTS.image
+    const resolvedImage = image
+      ? image.startsWith('http')
+        ? image
+        : `${BASE_URL}${image.startsWith('/') ? '' : '/'}${image}`
+      : DEFAULTS.image
 
     const previousTitle = document.title
     document.title = resolvedTitle
@@ -44,6 +50,14 @@ export function useSEO({ title, description, image, noIndex } = {}) {
       create: { property: 'og:image' },
       content: resolvedImage,
     })
+    upsertMeta('meta[property="og:image:width"]', {
+      create: { property: 'og:image:width' },
+      content: '1200',
+    })
+    upsertMeta('meta[property="og:image:height"]', {
+      create: { property: 'og:image:height' },
+      content: '630',
+    })
     upsertMeta('meta[property="og:type"]', {
       create: { property: 'og:type' },
       content: 'website',
@@ -59,6 +73,10 @@ export function useSEO({ title, description, image, noIndex } = {}) {
     upsertMeta('meta[name="twitter:description"]', {
       create: { name: 'twitter:description' },
       content: resolvedDesc,
+    })
+    upsertMeta('meta[name="twitter:image"]', {
+      create: { name: 'twitter:image' },
+      content: resolvedImage,
     })
     upsertMeta('meta[name="robots"]', {
       create: { name: 'robots' },
