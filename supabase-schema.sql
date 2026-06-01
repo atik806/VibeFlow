@@ -79,6 +79,61 @@ ALTER TABLE requests ADD CONSTRAINT prompt_length
 ALTER TABLE error_logs ADD CONSTRAINT msg_length
   CHECK (char_length(message) <= 2000);
 
+-- Extended profile fields (Phase 1 client dashboard)
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS phone TEXT;
+ALTER TABLE profiles ADD COLUMN IF NOT EXISTS company TEXT;
+
+-- Client messages table for dashboard communication
+CREATE TABLE IF NOT EXISTS client_messages (
+  id BIGSERIAL PRIMARY KEY,
+  project_request_id BIGINT REFERENCES project_requests(id) ON DELETE SET NULL,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
+  sender TEXT NOT NULL CHECK (sender IN ('client', 'admin')),
+  subject TEXT NOT NULL,
+  message TEXT NOT NULL,
+  read BOOLEAN DEFAULT false,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE client_messages ENABLE ROW LEVEL SECURITY;
+
+-- Allow authenticated users to read their own messages
+CREATE POLICY IF NOT EXISTS "Users can read own messages" ON client_messages
+  FOR SELECT USING (auth.uid() = user_id);
+
+-- Allow authenticated users to insert their own messages
+CREATE POLICY IF NOT EXISTS "Users can insert own messages" ON client_messages
+  FOR INSERT WITH CHECK (auth.uid() = user_id AND sender = 'client');
+
+-- Allow service role full access (admin panel)
+CREATE POLICY IF NOT EXISTS "Service role full access on client_messages" ON client_messages
+  FOR ALL USING (auth.role() = 'service_role');
+
+-- Request updates table for status timeline
+CREATE TABLE IF NOT EXISTS request_updates (
+  id BIGSERIAL PRIMARY KEY,
+  project_request_id BIGINT REFERENCES project_requests(id) ON DELETE CASCADE,
+  old_status TEXT,
+  new_status TEXT NOT NULL,
+  note TEXT,
+  updated_by UUID REFERENCES auth.users(id) ON DELETE SET NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+ALTER TABLE request_updates ENABLE ROW LEVEL SECURITY;
+
+CREATE POLICY IF NOT EXISTS "Users can read own request updates" ON request_updates
+  FOR SELECT USING (
+    EXISTS (
+      SELECT 1 FROM project_requests
+      WHERE project_requests.id = request_updates.project_request_id
+      AND (project_requests.user_id = auth.uid() OR project_requests.user_id IS NULL)
+    )
+  );
+
+CREATE POLICY IF NOT EXISTS "Service role full access on request_updates" ON request_updates
+  FOR ALL USING (auth.role() = 'service_role');
+
 -- Visitor tracking for admin online dashboard
 CREATE TABLE IF NOT EXISTS visitor_sessions (
   id BIGSERIAL PRIMARY KEY,

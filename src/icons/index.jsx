@@ -37,6 +37,16 @@ export {
   BarChart3,
   Plus,
   DollarSign,
+  LayoutDashboard,
+  List,
+  MessageSquare,
+  User,
+  Settings,
+  Lock,
+  Send,
+  Search,
+  Filter,
+  SlidersHorizontal,
 } from 'lucide-react'
 
 export function StarIcon({ size = 18 }) {
