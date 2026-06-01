@@ -11,10 +11,11 @@ import {
   Plus, Terminal, Mail, DollarSign,
   LayoutDashboard, List, MessageSquare, User,
   Lock, Send, Search, Trash2, Check,
-  CheckCircle2, AlertCircle, Loader2,
+  CheckCircle2, AlertCircle, Loader2, Upload,
 } from '../icons'
 import { Button } from '../components/ui/Button'
 import { Input } from '../components/ui/Field'
+import { uploadAvatar, deleteAvatar, EMOJIS } from '../lib/avatarUpload'
 
 const TABS = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
@@ -362,7 +363,7 @@ function ProjectsTab({ requests, loading }) {
 }
 
 /* ─── Messages Tab ─── */
-function MessagesTab({ user }) {
+function MessagesTab({ user, avatarEmoji, avatarUrl }) {
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
   const [text, setText] = useState('')
@@ -488,10 +489,15 @@ function MessagesTab({ user }) {
                     <span>{new Date(firstMsg.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </div>
                 )}
-                <div className={`chat-group ${group.sender === 'admin' ? 'chat-group-received' : 'chat-group-sent'}`}>
-                  <div className="chat-group-avatar">
-                    <span className="chat-avatar">V</span>
-                  </div>
+                  <div className={`chat-group ${group.sender === 'admin' ? 'chat-group-received' : 'chat-group-sent'}`}>
+                    <div className="chat-group-avatar">
+                      <span className="chat-avatar">
+                        {group.sender === 'admin' ? 'V'
+                         : avatarUrl ? <img src={avatarUrl} alt="" />
+                         : avatarEmoji ? <span className="avatar-emoji">{avatarEmoji}</span>
+                         : <span>V</span>}
+                      </span>
+                    </div>
                   <div className="chat-group-bubbles">
                     {group.messages.map((m, mi) => (
                       <div key={m.id} className={`chat-bubble ${m.sender === 'admin' ? 'chat-received' : 'chat-sent'} ${mi === 0 ? 'chat-bubble-first' : ''} ${mi === group.messages.length - 1 ? 'chat-bubble-last' : 'chat-bubble-mid'}`}>
@@ -534,13 +540,16 @@ function MessagesTab({ user }) {
 
 /* ─── Profile Tab ─── */
 function ProfileTab({ user }) {
-  const [profile, setProfile] = useState({ full_name: '', phone: '', company: '' })
+  const [profile, setProfile] = useState({ full_name: '', phone: '', company: '', avatar_emoji: null, avatar_url: null })
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [pwForm, setPwForm] = useState({ current: '', new: '', confirm: '' })
   const [pwError, setPwError] = useState('')
   const [pwSuccess, setPwSuccess] = useState('')
   const [pwLoading, setPwLoading] = useState(false)
+  const [uploading, setUploading] = useState(false)
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false)
+  const fileInputRef = useRef(null)
   const toast = useToast()
 
   useEffect(() => {
@@ -554,7 +563,7 @@ function ProfileTab({ user }) {
       const supabase = getSupabase()
       const { data, error } = await supabase
         .from('profiles')
-        .select('full_name, phone, company')
+        .select('full_name, phone, company, avatar_emoji, avatar_url')
         .eq('id', user.id)
         .single()
       if (!cancelled) {
@@ -563,6 +572,8 @@ function ProfileTab({ user }) {
             full_name: data.full_name || '',
             phone: data.phone || '',
             company: data.company || '',
+            avatar_emoji: data.avatar_emoji || null,
+            avatar_url: data.avatar_url || null,
           })
         }
         setLoading(false)
@@ -587,6 +598,8 @@ function ProfileTab({ user }) {
           full_name: profile.full_name,
           phone: profile.phone,
           company: profile.company,
+          avatar_emoji: profile.avatar_emoji || null,
+          avatar_url: profile.avatar_url || null,
         })
       if (error) throw error
       toast.success('Profile updated', 'Your changes have been saved.')
@@ -595,6 +608,44 @@ function ProfileTab({ user }) {
     }
     setSaving(false)
   }, [user, profile, toast])
+
+  const handlePictureAction = useCallback(async (action) => {
+    if (action === 'upload') {
+      fileInputRef.current?.click()
+    } else if (action === 'pick-emoji') {
+      setShowEmojiPicker(v => !v)
+    } else if (action === 'remove') {
+      const oldUrl = profile.avatar_url
+      setProfile(p => ({ ...p, avatar_emoji: null, avatar_url: null }))
+      setShowEmojiPicker(false)
+      if (oldUrl) deleteAvatar(oldUrl).catch(() => {})
+    }
+  }, [profile.avatar_url])
+
+  const handleFileChange = useCallback(async (e) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploading(true)
+    try {
+      const publicUrl = await uploadAvatar(user.id, file)
+      const oldUrl = profile.avatar_url
+      setProfile(p => ({ ...p, avatar_url: publicUrl, avatar_emoji: null }))
+      setShowEmojiPicker(false)
+      if (oldUrl) deleteAvatar(oldUrl).catch(() => {})
+    } catch (err) {
+      toast.error('Upload failed', err.message)
+    }
+    setUploading(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }, [user.id, profile.avatar_url, toast])
+
+  const handleEmojiSelect = useCallback((emoji) => {
+    setProfile(p => ({ ...p, avatar_emoji: emoji, avatar_url: null }))
+    setShowEmojiPicker(false)
+  }, [])
+
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || ''
+  const initial = displayName ? displayName.charAt(0).toUpperCase() : '?'
 
   const handleChangePassword = useCallback(async (e) => {
     e.preventDefault()
@@ -643,11 +694,65 @@ function ProfileTab({ user }) {
     return <div className="dashboard-loading"><Loader2 size={24} className="spinner" /></div>
   }
 
+  const avatarPreview = profile.avatar_url
+    ? <img src={profile.avatar_url} alt="" />
+    : profile.avatar_emoji
+      ? <span className="avatar-emoji">{profile.avatar_emoji}</span>
+      : <span>{initial}</span>
+
   return (
     <div className="dashboard-section profile-section">
       <div className="profile-card">
         <h3 className="profile-card-title">Personal Information</h3>
         <form onSubmit={handleSave} className="profile-form">
+          <div className="profile-picture-section">
+            <div className="profile-picture-preview">
+              {avatarPreview}
+            </div>
+            <div className="profile-picture-actions">
+              <Button type="button" variant="outline" onClick={() => handlePictureAction('upload')} disabled={uploading}>
+                {uploading ? <Loader2 size={14} className="spinner" /> : <Upload size={14} />}
+                {uploading ? 'Uploading…' : 'Upload Image'}
+              </Button>
+              <Button type="button" variant="ghost" onClick={() => handlePictureAction('pick-emoji')}>
+                {showEmojiPicker ? 'Cancel' : profile.avatar_emoji ? 'Change Emoji' : 'Pick an Emoji'}
+              </Button>
+              {(profile.avatar_url || profile.avatar_emoji) && (
+                <Button type="button" variant="ghost" className="btn btn-danger" onClick={() => handlePictureAction('remove')}>
+                  <Trash2 size={13} />
+                  Remove
+                </Button>
+              )}
+              <span className="profile-picture-hint">Max 2MB. JPEG, PNG, WebP, GIF.</span>
+            </div>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              style={{ display: 'none' }}
+              onChange={handleFileChange}
+            />
+          </div>
+
+          {showEmojiPicker && (
+            <div className="emoji-picker-section">
+              <div className="emoji-picker-label">Choose an emoji</div>
+              <div className="emoji-grid">
+                {EMOJIS.map(emoji => (
+                  <button
+                    key={emoji}
+                    type="button"
+                    className={`emoji-option ${profile.avatar_emoji === emoji ? 'selected' : ''}`}
+                    onClick={() => handleEmojiSelect(emoji)}
+                    aria-label={emoji}
+                  >
+                    {emoji}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
           <Input
             label="Full Name"
             value={profile.full_name}
@@ -798,7 +903,7 @@ export default function ClientDashboard() {
           .limit(50),
         supabase
           .from('profiles')
-          .select('full_name, phone, company, created_at')
+          .select('full_name, phone, company, created_at, avatar_emoji, avatar_url')
           .eq('id', user.id)
           .single(),
       ])
@@ -848,8 +953,10 @@ export default function ClientDashboard() {
       if (!cancelled) {
         setError(errs.length > 0 ? `Could not fetch from: ${errs.join(', ')}` : '')
         setRequests(userRequests)
-        if (!profResult.error && profResult.data?.created_at) {
+        if (!profResult.error && profResult.data) {
           setProfileCreatedAt(profResult.data.created_at)
+          setAvatarEmoji(profResult.data.avatar_emoji || null)
+          setAvatarUrl(profResult.data.avatar_url || null)
         }
         setLoading(false)
       }
@@ -861,6 +968,9 @@ export default function ClientDashboard() {
 
   const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User'
   const userInitial = displayName.charAt(0).toUpperCase()
+
+  const [avatarEmoji, setAvatarEmoji] = useState(null)
+  const [avatarUrl, setAvatarUrl] = useState(null)
 
   const stats = useMemo(() => {
     const total = requests.length
@@ -923,7 +1033,11 @@ export default function ClientDashboard() {
           transition={{ duration: 0.4 }}
         >
           <div className="dashboard-user">
-            <div className="dashboard-avatar">{userInitial}</div>
+            <div className="dashboard-avatar">
+              {avatarUrl ? <img src={avatarUrl} alt="" />
+               : avatarEmoji ? <span className="avatar-emoji">{avatarEmoji}</span>
+               : <span>{userInitial}</span>}
+            </div>
             <div>
               <h1>{displayName}</h1>
               <p className="text-muted">{user?.email}</p>
@@ -980,7 +1094,7 @@ export default function ClientDashboard() {
                 loading={loading}
               />
             )}
-            {activeTab === 'messages' && <MessagesTab user={user} />}
+            {activeTab === 'messages' && <MessagesTab user={user} avatarEmoji={avatarEmoji} avatarUrl={avatarUrl} />}
             {activeTab === 'profile' && <ProfileTab user={user} />}
           </motion.div>
         </AnimatePresence>

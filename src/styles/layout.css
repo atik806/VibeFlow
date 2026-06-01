@@ -192,6 +192,18 @@
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+.nav-user-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+}
+.nav-user-avatar .avatar-emoji {
+  font-size: 15px;
+  line-height: 1;
 }
 
 .nav-user-name {

@@ -6,7 +6,7 @@ import { LightningIcon, Close } from '../../icons'
 import { useLockBodyScroll } from '../../hooks/useLockBodyScroll'
 import { useAuth } from '../../hooks/useAuth'
 
-export function MobileDrawer({ isOpen, onClose, user }) {
+export function MobileDrawer({ isOpen, onClose, user, avatarEmoji, avatarUrl }) {
   const { signOut } = useAuth()
   const navigate = useNavigate()
   const { pathname } = useLocation()
@@ -24,6 +24,9 @@ export function MobileDrawer({ isOpen, onClose, user }) {
   }, [isOpen, onClose])
 
   if (!isOpen) return null
+
+  const displayName = user?.user_metadata?.full_name || user?.email?.split('@')[0] || ''
+  const initial = displayName ? displayName.charAt(0).toUpperCase() : '?'
 
   return createPortal(
     <>
@@ -49,6 +52,19 @@ export function MobileDrawer({ isOpen, onClose, user }) {
             <Close size={20} />
           </button>
         </div>
+        {user && (
+          <div className="drawer-user">
+            <span className="nav-user-avatar">
+              {avatarUrl ? <img src={avatarUrl} alt="" />
+               : avatarEmoji ? <span className="avatar-emoji">{avatarEmoji}</span>
+               : <span>{initial}</span>}
+            </span>
+            <div>
+              <div className="drawer-user-name">{displayName}</div>
+              <div className="drawer-user-email">{user?.email}</div>
+            </div>
+          </div>
+        )}
         {!isDashboard && (
           <nav className="drawer-nav" aria-label="Mobile primary">
             {primaryNav.map((item) => (
