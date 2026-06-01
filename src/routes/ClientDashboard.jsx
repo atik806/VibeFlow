@@ -10,7 +10,7 @@ import {
   ArrowRight, Calendar, BarChart3,
   Plus, Terminal, Mail, DollarSign,
   LayoutDashboard, List, MessageSquare, User,
-  Lock, Send, Search, Trash2,
+  Lock, Send, Search, Trash2, RefreshCcw,
   CheckCircle2, AlertCircle, Loader2,
 } from '../icons'
 import { Button } from '../components/ui/Button'
@@ -369,30 +369,37 @@ function MessagesTab({ user }) {
   const [sending, setSending] = useState(false)
   const toast = useToast()
 
+  const loadMessages = useCallback(async () => {
+    if (!user || !isSupabaseConfigured()) return
+    const supabase = getSupabase()
+    const { data, error } = await supabase
+      .from('client_messages')
+      .select('*')
+      .eq('user_id', user.id)
+      .order('created_at', { ascending: false })
+      .limit(50)
+    if (!error) setMessages(data || [])
+  }, [user])
+
   useEffect(() => {
     let cancelled = false
-
     const init = async () => {
       if (!user || !isSupabaseConfigured()) {
         if (!cancelled) setLoading(false)
         return
       }
-      const supabase = getSupabase()
-      const { data, error } = await supabase
-        .from('client_messages')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50)
-      if (!cancelled) {
-        if (!error) setMessages(data || [])
-        setLoading(false)
-      }
+      await loadMessages()
+      if (!cancelled) setLoading(false)
     }
-
     init()
-    return () => { cancelled = true }
-  }, [user])
+
+    // Poll for new messages every 30s
+    const interval = setInterval(() => {
+      if (!cancelled) loadMessages()
+    }, 30_000)
+
+    return () => { cancelled = true; clearInterval(interval) }
+  }, [user, loadMessages])
 
   const handleSend = useCallback(async (e) => {
     e.preventDefault()
@@ -413,14 +420,7 @@ function MessagesTab({ user }) {
       if (error) throw error
       toast.success('Message sent', 'We\'ll get back to you soon.')
       setNewMsg({ subject: '', message: '' })
-      // Refresh
-      const { data } = await supabase
-        .from('client_messages')
-        .select('*')
-        .eq('user_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50)
-      if (data) setMessages(data)
+      await loadMessages()
     } catch (err) {
       toast.error('Failed to send', err.message)
     }
@@ -463,9 +463,20 @@ function MessagesTab({ user }) {
       {/* Message history */}
       <div className="dashboard-section-header" style={{ marginTop: 28 }}>
         <h2>Message History</h2>
-        {messages.length > 0 && (
-          <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{messages.length} total</span>
-        )}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          {messages.length > 0 && (
+            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{messages.length} total</span>
+          )}
+          <button
+            type="button"
+            className="btn-icon"
+            onClick={loadMessages}
+            title="Refresh messages"
+            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}
+          >
+            <RefreshCcw size={14} />
+          </button>
+        </div>
       </div>
 
       {messages.length === 0 ? (
