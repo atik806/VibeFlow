@@ -10,7 +10,7 @@ import {
   ArrowRight, Calendar, BarChart3,
   Plus, Terminal, Mail, DollarSign,
   LayoutDashboard, List, MessageSquare, User,
-  Lock, Send, Search, Trash2,
+  Lock, Send, Search, Trash2, Check,
   CheckCircle2, AlertCircle, Loader2,
 } from '../icons'
 import { Button } from '../components/ui/Button'
@@ -438,6 +438,30 @@ function MessagesTab({ user }) {
     [messages]
   )
 
+  // Group consecutive same-sender messages
+  const grouped = useMemo(() => {
+    if (!chatMessages.length) return []
+    const groups = []
+    let current = [chatMessages[0]]
+    for (let i = 1; i < chatMessages.length; i++) {
+      const prev = chatMessages[i - 1]
+      const curr = chatMessages[i]
+      const sameSender = curr.sender === prev.sender
+      const timeGap = new Date(curr.created_at) - new Date(prev.created_at)
+      if (sameSender && timeGap < 300_000) {
+        current.push(curr)
+      } else {
+        groups.push(current)
+        current = [curr]
+      }
+    }
+    groups.push(current)
+    return groups.map(group => ({
+      sender: group[0].sender,
+      messages: group,
+    }))
+  }, [chatMessages])
+
   if (loading) {
     return <div className="dashboard-loading"><Loader2 size={24} className="spinner" /></div>
   }
@@ -450,24 +474,34 @@ function MessagesTab({ user }) {
           <div className="chat-empty">
             <div className="chat-empty-icon"><MessageSquare size={24} /></div>
             <h3>No messages yet</h3>
-            <p>Send a message below to start a conversation.</p>
+            <p>Send a message below to start a conversation with our team.</p>
           </div>
         ) : (
-          chatMessages.map((m, i) => {
-            const prev = chatMessages[i - 1]
-            const showDate = !prev || new Date(m.created_at).toDateString() !== new Date(prev.created_at).toDateString()
+          grouped.map((group, gi) => {
+            const firstMsg = group.messages[0]
+            const lastMsg = group.messages[group.messages.length - 1]
+            const showDateSep = gi === 0 || new Date(firstMsg.created_at).toDateString() !== new Date(grouped[gi - 1].messages[0].created_at).toDateString()
             return (
-              <div key={m.id}>
-                {showDate && (
+              <div key={firstMsg.id + '-g'}>
+                {showDateSep && (
                   <div className="chat-date-sep">
-                    <span>{new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                    <span>{new Date(firstMsg.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
                   </div>
                 )}
-                <div className={`chat-bubble ${m.sender === 'admin' ? 'chat-received' : 'chat-sent'}`}>
-                  {m.sender === 'admin' && <div className="chat-bubble-name">VibeFlow Team</div>}
-                  <div className="chat-bubble-text">{m.message}</div>
-                  <div className="chat-bubble-time">
-                    {new Date(m.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                <div className={`chat-group ${group.sender === 'admin' ? 'chat-group-received' : 'chat-group-sent'}`}>
+                  <div className="chat-group-avatar">
+                    <span className="chat-avatar">V</span>
+                  </div>
+                  <div className="chat-group-bubbles">
+                    {group.messages.map((m, mi) => (
+                      <div key={m.id} className={`chat-bubble ${m.sender === 'admin' ? 'chat-received' : 'chat-sent'} ${mi === 0 ? 'chat-bubble-first' : ''} ${mi === group.messages.length - 1 ? 'chat-bubble-last' : 'chat-bubble-mid'}`}>
+                        <div className="chat-bubble-text">{m.message}</div>
+                        <div className="chat-bubble-meta">
+                          <span className="chat-bubble-time">{new Date(m.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}</span>
+                          {m.sender === 'client' && <span className="chat-bubble-status"><Check size={11} /></span>}
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               </div>
