@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { Link, useOutletContext, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useAuth } from '../hooks/useAuth'
@@ -10,7 +10,7 @@ import {
   ArrowRight, Calendar, BarChart3,
   Plus, Terminal, Mail, DollarSign,
   LayoutDashboard, List, MessageSquare, User,
-  Lock, Send, Search, Trash2, RefreshCcw,
+  Lock, Send, Search, Trash2,
   CheckCircle2, AlertCircle, Loader2,
 } from '../icons'
 import { Button } from '../components/ui/Button'
@@ -365,8 +365,9 @@ function ProjectsTab({ requests, loading }) {
 function MessagesTab({ user }) {
   const [messages, setMessages] = useState([])
   const [loading, setLoading] = useState(true)
-  const [newMsg, setNewMsg] = useState({ subject: '', message: '' })
+  const [text, setText] = useState('')
   const [sending, setSending] = useState(false)
+  const chatRef = useRef(null)
   const toast = useToast()
 
   const loadMessages = useCallback(async () => {
@@ -392,18 +393,23 @@ function MessagesTab({ user }) {
       if (!cancelled) setLoading(false)
     }
     init()
-
-    // Poll for new messages every 30s
     const interval = setInterval(() => {
       if (!cancelled) loadMessages()
     }, 30_000)
-
     return () => { cancelled = true; clearInterval(interval) }
   }, [user, loadMessages])
 
+  // Auto-scroll to bottom when messages change
+  useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight
+    }
+  }, [messages])
+
   const handleSend = useCallback(async (e) => {
     e.preventDefault()
-    if (!newMsg.subject.trim() || !newMsg.message.trim()) return
+    const msg = text.trim()
+    if (!msg) return
     if (!isSupabaseConfigured()) return
     setSending(true)
     try {
@@ -413,98 +419,81 @@ function MessagesTab({ user }) {
         .insert({
           user_id: user.id,
           sender: 'client',
-          subject: newMsg.subject.trim(),
-          message: newMsg.message.trim(),
+          subject: msg.slice(0, 80),
+          message: msg,
           read: false,
         })
       if (error) throw error
-      toast.success('Message sent', 'We\'ll get back to you soon.')
-      setNewMsg({ subject: '', message: '' })
+      setText('')
       await loadMessages()
     } catch (err) {
       toast.error('Failed to send', err.message)
     }
     setSending(false)
-  }, [newMsg, user, toast])
+  }, [text, user, toast])
+
+  // Messages in ascending order for chat display
+  const chatMessages = useMemo(() =>
+    [...messages].sort((a, b) => new Date(a.created_at) - new Date(b.created_at)),
+    [messages]
+  )
 
   if (loading) {
     return <div className="dashboard-loading"><Loader2 size={24} className="spinner" /></div>
   }
 
   return (
-    <div className="dashboard-section">
-      {/* New message form */}
-      <div className="msg-compose">
-        <h3 className="msg-compose-title">Send a Message</h3>
-        <form onSubmit={handleSend} className="msg-compose-form">
-          <input
-            type="text"
-            className="field-control"
-            placeholder="Subject"
-            value={newMsg.subject}
-            onChange={e => setNewMsg(p => ({ ...p, subject: e.target.value }))}
-            required
-          />
-          <textarea
-            className="field-control msg-compose-textarea"
-            placeholder="Write your message..."
-            rows={3}
-            value={newMsg.message}
-            onChange={e => setNewMsg(p => ({ ...p, message: e.target.value }))}
-            required
-          />
-          <Button type="submit" variant="primary" loading={sending} disabled={sending}>
-            <Send size={14} />
-            Send Message
-          </Button>
-        </form>
-      </div>
-
-      {/* Message history */}
-      <div className="dashboard-section-header" style={{ marginTop: 28 }}>
-        <h2>Message History</h2>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-          {messages.length > 0 && (
-            <span style={{ fontSize: 12, color: 'var(--text-muted)' }}>{messages.length} total</span>
-          )}
-          <button
-            type="button"
-            className="btn-icon"
-            onClick={loadMessages}
-            title="Refresh messages"
-            style={{ background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer', padding: 4 }}
-          >
-            <RefreshCcw size={14} />
-          </button>
-        </div>
-      </div>
-
-      {messages.length === 0 ? (
-        <div className="dashboard-empty">
-          <div className="dashboard-empty-icon"><MessageSquare size={22} /></div>
-          <h3>No messages yet</h3>
-          <p>Send a message to start a conversation with our team.</p>
-        </div>
-      ) : (
-        <div className="msg-list">
-          {messages.map((m) => (
-            <div key={m.id} className={`msg-item ${!m.read && m.sender === 'admin' ? 'msg-unread' : ''}`}>
-              <div className="msg-item-header">
-                <span className="msg-item-sender">
-                  {m.sender === 'admin' ? 'VibeFlow Team' : 'You'}
-                </span>
-                <span className="msg-item-date">
-                  {new Date(m.created_at).toLocaleDateString('en-US', {
-                    month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit',
-                  })}
-                </span>
+    <div className="chat-container">
+      {/* Messages area */}
+      <div className="chat-messages" ref={chatRef}>
+        {chatMessages.length === 0 ? (
+          <div className="chat-empty">
+            <div className="chat-empty-icon"><MessageSquare size={24} /></div>
+            <h3>No messages yet</h3>
+            <p>Send a message below to start a conversation.</p>
+          </div>
+        ) : (
+          chatMessages.map((m, i) => {
+            const prev = chatMessages[i - 1]
+            const showDate = !prev || new Date(m.created_at).toDateString() !== new Date(prev.created_at).toDateString()
+            return (
+              <div key={m.id}>
+                {showDate && (
+                  <div className="chat-date-sep">
+                    <span>{new Date(m.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>
+                  </div>
+                )}
+                <div className={`chat-bubble ${m.sender === 'admin' ? 'chat-received' : 'chat-sent'}`}>
+                  {m.sender === 'admin' && <div className="chat-bubble-name">VibeFlow Team</div>}
+                  <div className="chat-bubble-text">{m.message}</div>
+                  <div className="chat-bubble-time">
+                    {new Date(m.created_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
+                  </div>
+                </div>
               </div>
-              <div className="msg-item-subject">{m.subject}</div>
-              <div className="msg-item-body">{m.message}</div>
-            </div>
-          ))}
-        </div>
-      )}
+            )
+          })
+        )}
+      </div>
+
+      {/* Input area */}
+      <form className="chat-input-bar" onSubmit={handleSend}>
+        <input
+          type="text"
+          className="chat-input"
+          placeholder="Type a message..."
+          value={text}
+          onChange={e => setText(e.target.value)}
+          autoFocus
+        />
+        <button
+          type="submit"
+          className="chat-send-btn"
+          disabled={sending || !text.trim()}
+        >
+          {sending ? <Loader2 size={18} className="spinner" /> : <Send size={18} />}
+        </button>
+      </form>
     </div>
   )
 }
