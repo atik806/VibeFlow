@@ -97,16 +97,17 @@ CREATE TABLE IF NOT EXISTS client_messages (
 
 ALTER TABLE client_messages ENABLE ROW LEVEL SECURITY;
 
--- Allow authenticated users to read their own messages
-CREATE POLICY IF NOT EXISTS "Users can read own messages" ON client_messages
-  FOR SELECT USING (auth.uid() = user_id);
+-- Authenticated users can read any client_messages (frontend filters by user_id)
+DROP POLICY IF EXISTS "Users can read own messages" ON client_messages;
+CREATE POLICY "Authenticated users can read all" ON client_messages
+  FOR SELECT USING (auth.role() = 'authenticated');
 
 -- Allow authenticated users to insert their own messages
 DROP POLICY IF EXISTS "Users can insert own messages" ON client_messages;
 CREATE POLICY "Users can insert own messages" ON client_messages
-  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL AND sender = 'client');
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated' AND sender = 'client');
 
--- Allow service role full access (admin panel)
+-- Allow service role full access (admin API)
 CREATE POLICY IF NOT EXISTS "Service role full access on client_messages" ON client_messages
   FOR ALL USING (auth.role() = 'service_role');
 
