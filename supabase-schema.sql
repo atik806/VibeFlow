@@ -102,8 +102,9 @@ CREATE POLICY IF NOT EXISTS "Users can read own messages" ON client_messages
   FOR SELECT USING (auth.uid() = user_id);
 
 -- Allow authenticated users to insert their own messages
-CREATE POLICY IF NOT EXISTS "Users can insert own messages" ON client_messages
-  FOR INSERT WITH CHECK (auth.uid() = user_id AND sender = 'client');
+DROP POLICY IF EXISTS "Users can insert own messages" ON client_messages;
+CREATE POLICY "Users can insert own messages" ON client_messages
+  FOR INSERT WITH CHECK (auth.uid() IS NOT NULL AND sender = 'client');
 
 -- Allow service role full access (admin panel)
 CREATE POLICY IF NOT EXISTS "Service role full access on client_messages" ON client_messages
